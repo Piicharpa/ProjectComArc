@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+import Assembler.Parser.ParsedLine;
+import Assembler.Parser.Parser;
 import Assembler.Tokenizer.Tokenizer;
 
 public class Main {
@@ -13,6 +15,7 @@ public class Main {
         String filePath = "Assembler/File/test1"; // Replace with actual file path
 
         Tokenizer tokenizer = new Tokenizer();
+        Parser parser = new Parser(tokenizer);
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
@@ -21,19 +24,21 @@ public class Main {
             while ((line = reader.readLine()) != null) {
                 lineNumber++;
 
-                // Skip empty lines 
+                // Skip empty lines
                 if (line.trim().isEmpty()) {
                     continue;
                 }
 
                 // Tokenize the line
-                tokenizer.tokenizeLine(line);
+                // tokenizer.tokenizeLine(line);
+                parser = new Parser(tokenizer);
 
-                // Process tokens
                 System.out.println("Line " + lineNumber + ":");
-                while (tokenizer.hasMoreTokens()) {
-                    String token = tokenizer.getNextToken();
-                    System.out.println("  Token: " + token);
+                try {
+                    ParsedLine parsedLine = parser.parseLine(line);
+                    System.out.println(parsedLine);
+                } catch (Exception e) {
+                    System.err.println("Error parsing line " + lineNumber + ": " + e.getMessage());
                 }
             }
         } catch (IOException e) {
