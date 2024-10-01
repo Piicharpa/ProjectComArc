@@ -1,23 +1,19 @@
 package Assembler.Parser;
 
 import Assembler.Tokenizer.Tokenizer;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Parser {
     private Tokenizer tokenizer;
 
-    public Parser(Tokenizer tokenizer) {
-        this.tokenizer = tokenizer;
+    public Parser() {
+        this.tokenizer = new Tokenizer();
     }
 
     // Parse each line of assembly code
-    public ParsedLine parseLine(String line) throws Exception {
+    public ParsedLine parseLine(String line, int address) throws Exception {
         tokenizer.tokenizeLine(line); // Tokenize the line first
-        ParsedLine parsedLine = new ParsedLine(); // Create a new ParsedLine object
+        ParsedLine parsedLine = new ParsedLine(address); // Create a new ParsedLine object
         
-        // tokenizer.printTokens();
-
         if (tokenizer.hasMoreTokens()) {
             String token = tokenizer.getNextToken();
             String current = null;

@@ -49,24 +49,8 @@ public class Tokenizer {
 
     // Helper function to remove comments from the line based on instruction type
     private String removeComment(String line) {
-        // Trim whitespace from both ends
-        line = line.trim();
-
-        // Identify where the comment starts, if any
-        int commentIndex = line.indexOf('(');
-        if (commentIndex != -1) {
-            // System.out.println("be " + line);
-            line = line.substring(0, commentIndex).trim(); // Keep only the part before the comment
-            // System.out.println("af " + line);
-        }
-
         // Split line into parts to determine instruction type
         String[] parts = line.split("\\s+");
-        
-        // for( String part:parts){
-        //     System.out.print(part + " ");
-        // }
-        // System.out.println();
 
         // Prepare cleaned line that contains instruction and its fields
         StringBuilder cleanedLine = new StringBuilder();
@@ -86,11 +70,6 @@ public class Tokenizer {
             String instruction = parts[index];
             int argumentCount = getArgumentCount(instruction);
             cleanedLine.append(" ").append(instruction); // Append instruction
-
-            // for( String part:parts){
-            //     System.out.print(part + " ");
-            // }
-            // System.out.println();
 
             // Append fields based on argument count
             for (int i = 0; i < argumentCount; i++) {

@@ -7,10 +7,12 @@ public class ParsedLine {
     private String label;
     private String instruction;
     private String symbolic;
+    private int address;
     private List<String> arguments;
 
-    public ParsedLine() {
+    public ParsedLine(int address) {
         this.arguments = new ArrayList<>();
+        this.address = address;
     }
 
     public void setLabel(String label) {
@@ -18,7 +20,7 @@ public class ParsedLine {
     }
 
     public String getLabel() {
-        return label;  // Getter for label
+        return label;  
     }
 
     public void setInstruction(String instruction) {
@@ -26,11 +28,22 @@ public class ParsedLine {
     }
 
     public String getInstruction() {
-        return instruction;  // Getter for instruction
+        return instruction;  
     }
 
     public void setSymbolic(String symbolic) {
         this.symbolic = symbolic;
+    }
+
+    public String getSymbolic() {
+        return symbolic; 
+    }
+    public void setAddress(int address) {
+        this.address = address;
+    }
+
+    public int getAddress() {
+        return address; 
     }
 
     public void addArgument(String argument) {
@@ -38,12 +51,15 @@ public class ParsedLine {
     }
 
     public List<String> getArguments() {
-        return arguments;  // Getter for arguments
-    }
+        return arguments; 
+    } 
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        if (address != -1) {
+            sb.append("address: ").append(address).append("\n");
+        }
         // Check and append label
         if (label != null) {
             sb.append("Label: ").append(label).append("\n");
