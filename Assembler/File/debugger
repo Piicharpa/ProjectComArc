@@ -1,2 +1,6 @@
 label > 6 character thorw err
 เช็คคำผิด คำเกิน 
+1. การใช้labels ที่undefine
+2. การใช้label ที่เหมือนกัน
+3. การใช้offsetField ที่มีจำนวน bit มากกว่า 16 bits
+4. การใช้opcode นอกเหนือจากที่กำหนด
