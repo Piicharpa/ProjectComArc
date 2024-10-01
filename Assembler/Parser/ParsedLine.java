@@ -64,7 +64,7 @@ public class ParsedLine {
         if (label != null) {
             sb.append("Label: ").append(label).append("\n");
         }
-        // // Check and append symbolic reference
+        // Check and append symbolic reference
         if (symbolic != null) {
             sb.append("Symbolic: ").append(symbolic).append("\n");
         }

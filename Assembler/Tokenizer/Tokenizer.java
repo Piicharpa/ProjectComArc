@@ -34,7 +34,7 @@ public class Tokenizer {
         if (hasMoreTokens()) {
             return tokens.get(currentTokenIndex++);
         }
-        return null; // No more tokens
+        return null; 
     }
 
     // Check if there are more tokens

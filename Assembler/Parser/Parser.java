@@ -12,7 +12,7 @@ public class Parser {
     // Parse each line of assembly code
     public ParsedLine parseLine(String line, int address) throws Exception {
         tokenizer.tokenizeLine(line); // Tokenize the line first
-        ParsedLine parsedLine = new ParsedLine(address); // Create a new ParsedLine object
+        ParsedLine parsedLine = new ParsedLine(address); 
         
         if (tokenizer.hasMoreTokens()) {
             String token = tokenizer.getNextToken();
