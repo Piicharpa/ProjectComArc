@@ -1,7 +1,7 @@
-main    lw  0   1   n                   ;$1 = n
-        lw  0   2   r                   ;$2 = r
-        lw  0   6   combiAdr            ;$6 = combi_sub (address)
-        jalr    6   7                   ;$7 = return address 
+main    lw  0   1   n                       ;$1 = n
+        lw  0   2   r                       ;$2 = r
+        lw  0   6   combiAdr                ;$6 = combi_sub (address)
+        jalr    6   7                       ;$7 = return address 
         halt
 combi_sub   lw  0   6   pos1                ;$6 = 1
             sw  5   7   stack               ;save return addr on stack
@@ -23,7 +23,7 @@ combi_sub   lw  0   6   pos1                ;$6 = 1
             add 2   6   2                   ;r = r - 1
             lw  0   6   combiAdr  
             jalr  6   7                     ;combination(n-1,r-1)
-            ;lw  0   6   neg1
+            ;lw  0   6   neg1 ไม่แน่ใจว่าต้องโหลดใหม่ไหม ตอนเทสเอาออกก่อนก็ได้
             add 5   6   5                   ;decrement stack pointer
             lw  5   6   stack               ;load result of combination(n-1,r) from stack
             add 3   6   3                   ;combination(n-1,r) + combination(n-1,r-1)
@@ -33,15 +33,14 @@ combi_sub   lw  0   6   pos1                ;$6 = 1
             lw  5   1   stack               ;recover original $1
             jalr    7   6                   ;return. 
 base_case   add 0   6   3                   ;value = 1
-            jalr    7   6                   ;return. $6 is not restore
-zero    .fill   0
+            jalr    7   6                   ;return.
 pos1    .fill    1
 neg1    .fill   -1
-n   .fill   7                           ;combination(7,3)
+n   .fill   7                               ;combination(7,3)
 r   .fill   3
 combiAdr    .fill   combi_sub
 base_case_Adr   .fill   base_case
-stack   .fill   0                       ;Start of stack
+stack   .fill   0                            ;Start of stack
         .fill   0    
         .fill   0    
         .fill   0
