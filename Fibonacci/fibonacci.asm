@@ -26,6 +26,8 @@ fibo_sub    lw  0   6   pos1                ;$6 = 1
             add 3   6   3                   ;fibonacci(n-1) + fibonacci(n-2)
             add 5   6   5  
             lw  5   1   stack               ;recover original $1
+            add 5   6   5  
+            lw  5   7   stack               ;recover original return address
             jalr    7   6                   ;return. 
 return0 add 0   0   3                       ;value = 0
         jalr    7   6

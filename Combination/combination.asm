@@ -31,6 +31,8 @@ combi_sub   lw  0   6   pos1                ;$6 = 1
             lw  5   2   stack               ;recover original $2 
             add 5   6   5  
             lw  5   1   stack               ;recover original $1
+            add 5   6   5  
+            lw  5   7   stack               ;recover original return address
             jalr    7   6                   ;return. 
 base_case   add 0   6   3                   ;value = 1
             jalr    7   6                   ;return.
