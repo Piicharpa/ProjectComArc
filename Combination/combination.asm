@@ -24,24 +24,24 @@ combi_sub   lw  0   6   pos1                ;$6 = 1
             lw  0   6   combiAdr  
             jalr  6   7                     ;combination(n-1,r-1)
             ;lw  0   6   neg1
-            lw  5   6   stack               ;load result of combination(n-1,r) from stack
             add 5   6   5                   ;decrement stack pointer
+            lw  5   6   stack               ;load result of combination(n-1,r) from stack
             add 3   6   3                   ;combination(n-1,r) + combination(n-1,r-1)
+            add 5   6   5  
             lw  5   2   stack               ;recover original $2 
             add 5   6   5  
-            lw  5   1   stack               ;recover original $2 
-            add 5   6   5  
+            lw  5   1   stack               ;recover original $1
             jalr    7   6                   ;return. 
 base_case   add 0   6   3                   ;value = 1
             jalr    7   6                   ;return. $6 is not restore
 zero    .fill   0
 pos1    .fill    1
 neg1    .fill   -1
-n   .fill   7                   ;combination(7,3)
+n   .fill   7                           ;combination(7,3)
 r   .fill   3
 combiAdr    .fill   combi_sub
 base_case_Adr   .fill   base_case
-stack   .fill   0               ;Start of stack
+stack   .fill   0                       ;Start of stack
         .fill   0    
         .fill   0    
         .fill   0
