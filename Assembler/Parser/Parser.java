@@ -1,5 +1,6 @@
 package Assembler.Parser;
 
+import Assembler.Evaluator.EvalException;
 import Assembler.Tokenizer.Tokenizer;
 
 public class Parser {
@@ -15,23 +16,24 @@ public class Parser {
         ParsedLine parsedLine = new ParsedLine(address); 
         
         if (tokenizer.hasMoreTokens()) {
-            String token = tokenizer.getNextToken();
-            String current = null;
+            String current = tokenizer.getNextToken();
+            String next = null;
             // Instruction
-            if (isOpcode(token)) {
-                parsedLine.setInstruction(token);
+            if (isOpcode(current)) {
+                parsedLine.setInstruction(current);
             }else{
-                current = token;
-                token = tokenizer.getNextToken();
-                
-                // Symbolic
-                if(token.equals(".fill")) {
+                next = tokenizer.getNextToken();
+                if(next.equals(".fill")) {
+                    // Symbolic
                     parsedLine.setSymbolic(current);
-                }else{
-                // Label
-                    parsedLine.setLabel(current);
+                // } else if (Character.isDigit(token.charAt(0))) {
+                //     // Unknown Ins
+                //     throw new EvalException.unknownIns(current);
+                } else {
+                    // Label
+                    parsedLine.setLabel(current);    
                 }
-                parsedLine.setInstruction(token);
+                parsedLine.setInstruction(current);
             }
         }
 

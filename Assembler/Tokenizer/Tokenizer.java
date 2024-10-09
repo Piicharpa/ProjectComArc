@@ -37,6 +37,14 @@ public class Tokenizer {
         return null; 
     }
 
+    public String peekNextToken() {
+        if (hasMoreTokens()) {
+            int next = currentTokenIndex + 1;
+            return tokens.get(next);
+        }
+        return null; 
+    }
+
     // Check if there are more tokens
     public boolean hasMoreTokens() {
         return currentTokenIndex < tokens.size();

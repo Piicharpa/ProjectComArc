@@ -12,7 +12,7 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            String filePath = "Assembler/File/test1";
+            String filePath = "Assembler/File/test3.txt";
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             String line;
             List<ParsedLine> parsedLines = new ArrayList<>();
@@ -37,15 +37,15 @@ public class Main {
 
             // สร้าง Evaluator สำหรับประเมินผลโค้ด
             Evaluator evaluator = new Evaluator();
-
-            // First pass to build symbol table
-            evaluator.firstPass(parsedLines);
-
-            // Second pass to evaluate the parsed lines and generate machine code
-            evaluator.secondPass(parsedLines);
+            evaluator.evaluate(parsedLines);
+            
+            System.out.println( "Assembler completed successfully.");
+            System.exit(0);
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("Assembler failed due to errors.");
+            System.exit(1);
         }
     }
 }
