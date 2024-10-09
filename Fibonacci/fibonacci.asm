@@ -33,7 +33,7 @@ return1 add 0   6   3                       ;value = 1
         jalr    7   6
 pos1    .fill    1
 neg1    .fill   -1
-n       .fill   7                           ;fibonacci(7)
+n       .fill   3                           ;fibonacci(3)
 fiboAdr     .fill   fibo_sub
 return0Adr  .fill   return0
 return1Adr  .fill   return1
