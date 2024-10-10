@@ -17,24 +17,27 @@ public class Parser {
         
         if (tokenizer.hasMoreTokens()) {
             String current = tokenizer.getNextToken();
-            String next = null;
+            // String next = null;
+            
             // Instruction
             if (isOpcode(current)) {
                 parsedLine.setInstruction(current);
-            }else{
-                next = tokenizer.getNextToken();
-                if(next.equals(".fill")) {
-                    // Symbolic
-                    parsedLine.setSymbolic(current);
-                // } else if (Character.isDigit(token.charAt(0))) {
-                //     // Unknown Ins
-                //     throw new EvalException.unknownIns(current);
-                } else {
-                    // Label
-                    parsedLine.setLabel(current);    
+            } else { // Symbolic, label, wrong instruction
+                if(tokenizer.hasMoreTokens()) {
+                    String nextToken = tokenizer.getNextToken();
+                    if (isOpcode(nextToken)) { // Label + inst
+                        parsedLine.setLabel(current);
+                        parsedLine.setInstruction(nextToken);
+                    } else if (nextToken.equals(".fill")) { // Symbolic + .fill
+                        parsedLine.setSymbolic(current);
+                        parsedLine.setInstruction(nextToken);
+                    } else { // wrong inst
+                        throw new EvalException.UnknownInstruction(current);
+                    }
+                } else { // Get null (wrong inst by remove comment)
+                    throw new EvalException.UnknownInstruction(current);
                 }
-                parsedLine.setInstruction(current);
-            }
+            } 
         }
 
         // Add arguments to the instruction (if any)

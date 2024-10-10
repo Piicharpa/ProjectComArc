@@ -21,16 +21,16 @@ public class Evaluator {
         for (ParsedLine line : parsedLines) {
             // Store labels and their addresses
             if (line.getLabel() != null) {
-                if (line.getLabel().length() > 6) throw new EvalException.sixCharactor(line.getLabel()); 
-                else if (!Character.isLetter(line.getLabel().charAt(0))) throw new EvalException.sixCharactor(line.getLabel()); 
-                else if (labelTable.containsKey(line.getAddress())) throw new EvalException.sameLabel(line.getLabel());
+                if (line.getLabel().length() > 6) throw new EvalException.SixCharacters(line.getLabel()); 
+                else if (!Character.isLetter(line.getLabel().charAt(0))) throw new EvalException.SixCharacters(line.getLabel()); 
+                else if (labelTable.containsKey(line.getAddress())) throw new EvalException.SameLabel(line.getLabel());
                 else {
                     labelTable.put(line.getLabel(), line.getAddress());
                     System.out.println("label: " + line.getLabel() + " address: " + labelTable.get(line.getLabel()));
                 }
             }
 
-            // Handle .fill directives in firstPass
+            // Handle .fill (sysmbolic) 
             if (line.getInstruction() != null && line.getInstruction().equals(".fill")) {
                 if (!line.getArguments().isEmpty()) {
                     String value = line.getArguments().get(0);
@@ -42,7 +42,7 @@ public class Evaluator {
                         // Handle numeric value
                         symbolTable.put(line.getSymbolic(), Integer.parseInt(value));
                     } else {
-                        throw new EvalException.undefine(value);
+                        throw new EvalException.UndefineLabel(value);
                     }
 
                     addressTable.put(line.getSymbolic(), line.getAddress());
@@ -56,6 +56,7 @@ public class Evaluator {
             evaluateLine(line);
         }
     }
+
 
     // Evaluate a single parsed line and generate machine code
     private void evaluateLine(ParsedLine line) {
@@ -98,7 +99,7 @@ public class Evaluator {
                 System.out.println(symbolTable.get(line.getSymbolic()));
                 break;
             default:
-                throw new EvalException.unknownIns(line.getInstruction());
+                throw new EvalException.UnknownInstruction(line.getInstruction());
         }
     }
 
@@ -144,7 +145,7 @@ public class Evaluator {
             offset = Integer.parseInt(args.get(2)); // If not, treat as numeric
         }
 
-        if (!(offset >=  -32768 && offset <=  32768))  throw new EvalException.offset(offset);
+        if (!(offset >=  -32768 && offset <=  32768))  throw new EvalException.Offset(offset);
 
 
         String binaryCode = generateITypeCode(opcode, regA, regB, offset);

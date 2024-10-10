@@ -12,7 +12,7 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            String filePath = "Assembler/File/test3.txt";
+            String filePath = "Assembler/File/test5.txt";
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             String line;
             List<ParsedLine> parsedLines = new ArrayList<>();
@@ -22,15 +22,10 @@ public class Main {
 
             while ((line = reader.readLine()) != null) {
                 if (!line.trim().isEmpty()) {
-                    try {
-                        ParsedLine parsedLine = parser.parseLine(line, address); // Parse each line
-                        parsedLines.add(parsedLine); // Add parsed line to the list
-                        address++;
-                        System.out.println(parsedLine);
-                    } catch (Exception e) {
-                        System.out.println("Error parsing line: " + line);
-                        e.printStackTrace();
-                    }
+                    ParsedLine parsedLine = parser.parseLine(line, address); // Parse each line
+                    parsedLines.add(parsedLine); // Add parsed line to the list
+                    address++;
+                    System.out.println(parsedLine);
                 }
             }
             reader.close();
