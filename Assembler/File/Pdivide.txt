@@ -1,51 +1,50 @@
-lw          0           1           n        # Load n into register 1
-        lw          0           2           r        # Load r into register 2
-main    lw          0           6           comAdr   # Load comb address into register 6
-        jalr        6           7                    # Call combination(n, r)
-done    halt                                        # End program
-comb    lw          0           6      lw          0           1           n        # Load n into register 1
-        lw          0           2           r        # Load r into register 2
-main    lw          0           6           newComAdr   # Load new comb address into register 6
-        jalr        6           7                    # Call combination(n, r)
-done    halt                                        # End program
-comb    lw          0           6           pos1     # Temporary = 1
-        sw          5           7           stack    # Save return address($7) on stack
-        add         5           6           5        # Increment stack pointer
-        sw          5           1           stack    # Save n on stack
-        add         5           6           5        # Increment stack pointer
-        sw          5           2           stack    # Save r on stack
-        add         5           6           5        # Increment stack pointer
-        sw          5           4           stack    # Save local variable ($4) on stack
-        add         5           6           5        # Increment stack pointer
-        beq         1           2           return   # If n == r, return 1
-        beq         2           0           return   # If r == 0, return 1
-        lw          0           6           newElseAd   # Load new else address
-        jalr        6           0                    # Jump to else block
-return  lw          0           3           pos1     # Set $3 to 1
-        lw          0           6           newPopAdd   # Load new pop address
-        jalr        6           0                    # Jump to pop
-else    lw          0           6           neg1     # Temporary = -1
-        add         1           6           1        # n = n - 1
-        lw          0           6           newComAdr   # Load new comb address
-        jalr        6           7                    # Recursive call comb(n-1, r)
-        add         0           3           4        # Save result of comb(n-1, r) to $4
-        lw          0           6           neg1     # Temporary = -1
-        add         2           6           2        # r = r - 1
-        lw          0           6           newComAdr   # Load new comb address
-        jalr        6           7                    # Recursive call comb(n-1, r-1)
-        add         3           4           3        # Add comb(n-1, r) + comb(n-1, r-1)
-        lw          0           6           newPopAdd   # Load new pop address
-        jalr        6           0                    # Jump to pop
-pop     lw          0           6           neg1     # Temporary = -1
-        add         5           6           5        # Decrement stack pointer
-        lw          5           4           stack    # Restore local variable ($4)
-        add         5           6           5        # Decrement stack pointer
-        lw          5           2           stack    # Restore r
-        add         5           6           5        # Decrement stack pointer
-        lw          5           1           stack    # Restore n
-        add         5           6           5        # Decrement stack pointer
-        lw          5           7           stack    # Restore return address($7)
-        jalr        7           0                    # Return from function
+lw          0           1           dvdn      # Load dvdn into $1
+        lw          0           2           dvs       # Load dvs into $2
+        lw          0           3           quot      # Initialize quot (0) into $3
+        lw          0           4           remain     # Initialize remain (0) into $4
+        lw          0           7           stack         # Initialize stack pointer
+        lw          0           5           dvAdr     # Prepare to call divide subroutine
+        jalr        5           6                        # Call divide function
+        lw          0           5           doneAd       # Prepare to call done function
+        jalr        5           0                        # Call done function
+divide  sw          7           6           stack         # Save return address on stack
+        add         7           1           7             # Increment stack pointer
+        sw          7           1           stack         # Save $1 (dvdn) on stack
+        add         7           1           7             # Increment stack pointer
+        sw          7           2           stack         # Save $2 (dvs) on stack
+        add         7           1           7             # Increment stack pointer
+        sw          7           3           stack         # Save $3 (quot) on stack
+        add         7           1           7             # Increment stack pointer
+        sw          7           4           stack         # Save $4 (remain) on stack
+        add         7           1           7             # Increment stack pointer
+dvloop beq         1           0           done          # If dvdn == 0, go to done
+        beq         2           0           hcall     # If dvs == 0, call halt (error)
+        beq         1           2           quoadd  # If dvdn == dvs, quot is 1
+        lw          0           6           neg1          # Load neg1 into $6
+        add         1           6           1             # Subtract dvs from dvdn
+        add         3           3           5             # Increment quot
+        beq         0           0           dvloop # Continue loop
+quoadd add         3           3           4            # Increment quot
+        beq         0           0           done         # Jump to done
+hcall lw          0           5           haltAd      # Load address of halt subroutine into $5
+        jalr        5           0                        # Jump to halt
+done    lw          7           4           stack         # Restore $4 (remain) from stack
+        lw          7           3           stack         # Restore $3 (quot) from stack
+        lw          7           2           stack         # Restore $2 (dvs) from stack
+        lw          7           1           stack         # Restore $1 (dvdn) from stack
+        lw          7           6           stack         # Restore return address from stack
+        jalr        6           0                        # Return from subroutine
+hlabel halt                                          # Stop execution
+dvdn    .fill    1234       # dvdn (the number to be divided)
+dvs     .fill    123        # dvs (the number to divide by)
+quot    .fill    0          # Initialize quot (result of division)
+remain   .fill    0          # Initialize remain
+neg1        .fill    -1         # Constant for -1 (used for subtraction or decrement)
+dStart    .fill    divide     # Address of the division routine
+stack       .fill    0          # Stack pointer (if needed for subroutine calls)
+haltAd     .fill    hlabel  # Address of halt subroutine
+doneAd     .fill    done       # Address of done function
+dvAdr .fill divide #Address of divide subroutine        jalr        7           0                    # Return from function
 newRetAdr  .fill       return
 newElseAd  .fill       else
 newPopAdd  .fill       pop

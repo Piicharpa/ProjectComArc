@@ -5,6 +5,12 @@ public class EvalException extends RuntimeException {
         super(s);
     }
 
+    public static class Undefined extends EvalException {
+        public Undefined(String s) {
+            super("Undefined -> " + s);
+        }
+    }
+
     public static class UndefineLabel extends EvalException {
         public UndefineLabel(String s) {
             super("Undefined label -> " + s);
@@ -38,6 +44,12 @@ public class EvalException extends RuntimeException {
     public static class Offset extends EvalException {
         public Offset(int s) {
             super("Offset out of range -> " + s);
+        }
+    }
+
+    public static class InvalidLabelFormat extends EvalException {
+        public InvalidLabelFormat(String s) {
+            super("Invalid label format -> " + s);
         }
     }
 }

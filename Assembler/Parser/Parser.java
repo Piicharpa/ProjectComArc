@@ -32,7 +32,7 @@ public class Parser {
                         parsedLine.setSymbolic(current);
                         parsedLine.setInstruction(nextToken);
                     } else { // wrong inst
-                        throw new EvalException.UnknownInstruction(current);
+                        throw new EvalException.UnknownInstruction(nextToken);
                     }
                 } else { // Get null (wrong inst by remove comment)
                     throw new EvalException.UnknownInstruction(current);

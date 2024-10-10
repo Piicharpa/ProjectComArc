@@ -12,7 +12,8 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            String filePath = "Assembler/File/test5.txt";
+            // String filePath = "Assembler/File/Pmulti.txt";
+            String filePath = "Combination/combination.asm";
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             String line;
             List<ParsedLine> parsedLines = new ArrayList<>();

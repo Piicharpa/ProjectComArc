@@ -22,8 +22,8 @@ public class Evaluator {
             // Store labels and their addresses
             if (line.getLabel() != null) {
                 if (line.getLabel().length() > 6) throw new EvalException.SixCharacters(line.getLabel()); 
-                else if (!Character.isLetter(line.getLabel().charAt(0))) throw new EvalException.SixCharacters(line.getLabel()); 
-                else if (labelTable.containsKey(line.getAddress())) throw new EvalException.SameLabel(line.getLabel());
+                else if (!Character.isLetter(line.getLabel().charAt(0))) throw new EvalException.InvalidLabelFormat(line.getLabel()); 
+                else if (labelTable.containsKey(line.getLabel())) throw new EvalException.SameLabel(line.getLabel());
                 else {
                     labelTable.put(line.getLabel(), line.getAddress());
                     System.out.println("label: " + line.getLabel() + " address: " + labelTable.get(line.getLabel()));
@@ -141,8 +141,10 @@ public class Evaluator {
             }
         } else if (symbolTable.containsKey(args.get(2))) { // If it is symbolic
             offset = addressTable.get(args.get(2));
-        } else {
+        } else if (isNumber(args.get(2))) {
             offset = Integer.parseInt(args.get(2)); // If not, treat as numeric
+        } else {
+            throw new EvalException.Undefined(args.get(2));
         }
 
         if (!(offset >=  -32768 && offset <=  32768))  throw new EvalException.Offset(offset);
