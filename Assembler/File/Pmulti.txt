@@ -11,12 +11,12 @@ mulply  sw          7           6           stack          # Save return address
         add         7           1           7              # Increment stack pointer
         sw          7           2           stack          # Save $2 (multiplier) on stack
         add         7           1           7              # Increment stack pointer
-mp  and         4           2           1              # Check LSB of multiplier (multiplier & 1)
+mploop  add         4           2           1              # Check LSB of multiplier (multiplier & 1)
         beq         4           0           skadd       # If LSB is 0, skip addition
 
         add         3           3           1              # Add multiplicand to result
 
-mpp   add         1           1           1              # Double multiplicand (shift left by adding itself)
+skadd   add         1           1           1              # Double multiplicand (shift left by adding itself)
         
         lw          0           4           neg1           # Load neg1 into register for subtraction
         add         2           2           4              # Decrement multiplier (simulate shift right)

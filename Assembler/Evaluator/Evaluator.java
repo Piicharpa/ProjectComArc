@@ -29,20 +29,27 @@ public class Evaluator {
                     System.out.println("label: " + line.getLabel() + " address: " + labelTable.get(line.getLabel()));
                 }
             }
+        }
 
-            // Handle .fill (sysmbolic) 
+        for (ParsedLine line : parsedLines) {
+             // Handle .fill (sysmbolic) 
             if (line.getInstruction() != null && line.getInstruction().equals(".fill")) {
+                System.out.println(line.toString());
                 if (!line.getArguments().isEmpty()) {
                     String value = line.getArguments().get(0);
+                    System.out.println("val " + value);
 
                     if (labelTable.containsKey(value)) {
                         // Handle symbolic address (e.g., start)
                         symbolTable.put(line.getSymbolic(), labelTable.get(value));
+                    } else if (symbolTable.containsKey(value)) { 
+                        // Handle symbolic .fill symbolic
+                        symbolTable.put(line.getSymbolic(), symbolTable.get(value));
                     } else if (isNumber(value)) {
                         // Handle numeric value
                         symbolTable.put(line.getSymbolic(), Integer.parseInt(value));
                     } else {
-                        throw new EvalException.UndefineLabel(value);
+                        throw new EvalException.Undefined(value);
                     }
 
                     addressTable.put(line.getSymbolic(), line.getAddress());
@@ -88,12 +95,14 @@ public class Evaluator {
             case "halt": // Handle halt instruction
                 String binaryCode = "1100000000000000000000000";
                 int decimalCode = Integer.parseInt(binaryCode, 2);
-                System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
+                // System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
+                System.out.println(decimalCode);
                 break;
             case "noop": // Handle noop (no operation)
                 binaryCode = "1110000000000000000000000";
                 decimalCode = Integer.parseInt(binaryCode, 2);
-                System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
+                // System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
+                System.out.println(decimalCode);
                 break;
             case ".fill":
                 System.out.println(symbolTable.get(line.getSymbolic()));
@@ -116,8 +125,8 @@ public class Evaluator {
 
         String binaryCode = generateRTypeCode(opcode, regA, regB, destReg);
         int decimalCode = Integer.parseInt(binaryCode, 2);
-        System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
-        
+        // System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
+        System.out.println(decimalCode);
     }
 
     // Evaluate I-Type instruction (lw, sw, beq)
@@ -152,7 +161,8 @@ public class Evaluator {
 
         String binaryCode = generateITypeCode(opcode, regA, regB, offset);
         int decimalCode = Integer.parseInt(binaryCode, 2);
-        System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
+        // System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
+        System.out.println(decimalCode);
     }
 
 
@@ -168,8 +178,8 @@ public class Evaluator {
 
         String binaryCode = generateJTypeCode(opcode, regA, regB);
         int decimalCode = Integer.parseInt(binaryCode, 2);
-        System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
-
+        // System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
+        System.out.println(decimalCode);
     }
 
     public String generateRTypeCode(String opcode, int regA, int regB, int destReg) {

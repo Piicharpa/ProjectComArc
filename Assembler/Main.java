@@ -13,7 +13,11 @@ public class Main {
     public static void main(String[] args) {
         try {
             // String filePath = "Assembler/File/Pmulti.txt";
-            String filePath = "Combination/combination.asm";
+            // String filePath = "Assembler/File/Pcombine.txt";
+            String filePath = "Assembler/File/Pdivide.txt";
+
+            // String filePath = "Multiplication/multiplication.asm";
+            // String filePath = "Combination/combination.asm";
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             String line;
             List<ParsedLine> parsedLines = new ArrayList<>();
@@ -26,7 +30,7 @@ public class Main {
                     ParsedLine parsedLine = parser.parseLine(line, address); // Parse each line
                     parsedLines.add(parsedLine); // Add parsed line to the list
                     address++;
-                    System.out.println(parsedLine);
+                    // System.out.println(parsedLine);
                 }
             }
             reader.close();

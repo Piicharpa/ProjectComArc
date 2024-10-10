@@ -23,7 +23,7 @@ comsub   lw  0   6   pos1                   ;$6 = 1
             add 2   6   2                   ;r = r - 1
             lw  0   6   comAdr  
             jalr  6   7                     ;combination(n-1,r-1)
-            ;lw  0   6   neg1 ไม่แน่ใจว่าต้องโหลดใหม่ไหม ตอนเทสเอาออกก่อนก็ได้
+            lw  0   6   neg1 ไม่แน่ใจว่าต้องโหลดใหม่ไหม ตอนเทสเอาออกก่อนก็ได้
             add 5   6   5                   ;decrement stack pointer
             lw  5   6   stack               ;load result of combination(n-1,r) from stack
             add 3   6   3                   ;combination(n-1,r) + combination(n-1,r-1)
@@ -43,7 +43,4 @@ r   .fill   3
 comAdr    .fill   comsub
 bcAdr   .fill   bc
 stack   .fill   0                            ;Start of stack
-        .fill   0    
-        .fill   0    
-        .fill   0
-        .fill   0  
+       

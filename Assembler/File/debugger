@@ -6,3 +6,9 @@ label > 6 character thorw err
 4. การใช้opcode นอกเหนือจากที่กำหนด
 
 starttt /
+
+bcAdr   .fill   bc
+        .fill   0    
+        .fill   0    
+        .fill   0
+        .fill   0  

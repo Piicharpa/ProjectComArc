@@ -22,7 +22,4 @@ pos0    .fill   0       Constant 0 for initialization
 pos1    .fill   1       Constant 1 for checking LSB
 mcand   .fill   32766   Multiplicand (32766)
 mplier  .fill   10383   Multiplier (10383)
-stack   .fill   0       Stack for status checking
-        .fill   0                      
-        .fill   0                       
-        .fill   0                        
+stack   .fill   0       Stack for status checking                       

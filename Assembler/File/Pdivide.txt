@@ -1,102 +1,59 @@
-lw          0           1           dvdn      # Load dvdn into $1
-        lw          0           2           dvs       # Load dvs into $2
-        lw          0           3           quot      # Initialize quot (0) into $3
-        lw          0           4           remain     # Initialize remain (0) into $4
-        lw          0           7           stack         # Initialize stack pointer
-        lw          0           5           dvAdr     # Prepare to call divide subroutine
+lw          0           1           dividn      # Load dividend into $1
+        lw          0           2           divsor      # Load divisor into $2
+        lw          0           3           zero        # Initialize quotient (0) into $3
+        lw          0           4           zero        # Initialize remainder (0) into $4
+        lw          0           7           stackP      # Initialize stack pointer
+        lw          0           6           neg1        # Load -1 into $6 (used for decrementing stack pointer)
+        lw          0           5           divAdr      # Prepare to call divide subroutine
         jalr        5           6                        # Call divide function
-        lw          0           5           doneAd       # Prepare to call done function
+        lw          0           5           doneAd      # Prepare to call done function
         jalr        5           0                        # Call done function
-divide  sw          7           6           stack         # Save return address on stack
-        add         7           1           7             # Increment stack pointer
-        sw          7           1           stack         # Save $1 (dvdn) on stack
-        add         7           1           7             # Increment stack pointer
-        sw          7           2           stack         # Save $2 (dvs) on stack
-        add         7           1           7             # Increment stack pointer
-        sw          7           3           stack         # Save $3 (quot) on stack
-        add         7           1           7             # Increment stack pointer
-        sw          7           4           stack         # Save $4 (remain) on stack
-        add         7           1           7             # Increment stack pointer
-dvloop beq         1           0           done          # If dvdn == 0, go to done
-        beq         2           0           hcall     # If dvs == 0, call halt (error)
-        beq         1           2           quoadd  # If dvdn == dvs, quot is 1
-        lw          0           6           neg1          # Load neg1 into $6
-        add         1           6           1             # Subtract dvs from dvdn
-        add         3           3           5             # Increment quot
-        beq         0           0           dvloop # Continue loop
-quoadd add         3           3           4            # Increment quot
+divide  sw          7           6           0            # Save return address on stack
+        add         7           7           6            # Decrement stack pointer using $6 (which contains -1)
+        sw          7           1           0            # Save $1 (dividend) on stack
+        add         7           7           6            # Decrement stack pointer using $6
+        sw          7           2           0            # Save $2 (divisor) on stack
+        add         7           7           6            # Decrement stack pointer using $6
+        sw          7           3           0            # Save $3 (quotient) on stack
+        add         7           7           6            # Decrement stack pointer using $6
+        sw          7           4           0            # Save $4 (remainder) on stack
+        add         7           7           6            # Decrement stack pointer using $6
+div_lp  beq         1           0           done         # If dividend == 0, go to done
+        beq         2           0           haltC        # If divisor == 0, call halt (error)
+        lw          0           5           neg1         # Load -1 into $5
+        nand        6           2           2            # $6 = ~divisor
+        add         6           6           5            # $6 = ~divisor + 1 (i.e., -divisor)
+        add         1           1           6            # $1 = dividend - divisor
+        beq         1           0           q_add        # If dividend == 0, go to quotient_add
+        beq         1           2           q_add        # If dividend == divisor, go to quotient_add
+        lw          0           6           one          # Load 1 into $6
+        add         3           3           6            # Increment quotient
+        beq         0           0           div_lp       # Repeat loop
+q_add   lw          0           6           one          # Load 1 into $6
+        add         3           3           6            # Increment quotient once more
         beq         0           0           done         # Jump to done
-hcall lw          0           5           haltAd      # Load address of halt subroutine into $5
+haltC   lw          0           5           haltAd       # Load address of halt subroutine into $5
         jalr        5           0                        # Jump to halt
-done    lw          7           4           stack         # Restore $4 (remain) from stack
-        lw          7           3           stack         # Restore $3 (quot) from stack
-        lw          7           2           stack         # Restore $2 (dvs) from stack
-        lw          7           1           stack         # Restore $1 (dvdn) from stack
-        lw          7           6           stack         # Restore return address from stack
+done    lw          7           4           0            # Restore $4 (remainder) from stack
+        lw          0           6           one          # Load 1 into $6 for incrementing stack pointer
+        add         7           7           6            # Increment stack pointer
+        lw          7           3           0            # Restore $3 (quotient) from stack
+        add         7           7           6            # Increment stack pointer
+        lw          7           2           0            # Restore $2 (divisor) from stack
+        add         7           7           6            # Increment stack pointer
+        lw          7           1           0            # Restore $1 (dividend) from stack
+        add         7           7           6            # Increment stack pointer
+        lw          7           6           0            # Restore return address from stack
         jalr        6           0                        # Return from subroutine
-hlabel halt                                          # Stop execution
-dvdn    .fill    1234       # dvdn (the number to be divided)
-dvs     .fill    123        # dvs (the number to divide by)
-quot    .fill    0          # Initialize quot (result of division)
-remain   .fill    0          # Initialize remain
-neg1        .fill    -1         # Constant for -1 (used for subtraction or decrement)
-dStart    .fill    divide     # Address of the division routine
-stack       .fill    0          # Stack pointer (if needed for subroutine calls)
-haltAd     .fill    hlabel  # Address of halt subroutine
-doneAd     .fill    done       # Address of done function
-dvAdr .fill divide #Address of divide subroutine        jalr        7           0                    # Return from function
-newRetAdr  .fill       return
-newElseAd  .fill       else
-newPopAdd  .fill       pop
-newComAdr  .fill       comb
-n       .fill       7                                # Input n = 7
-r       .fill       3                                # Input r = 3
-neg1    .fill       -1                               # Constant -1 for subtraction
-pos1    .fill       1                                # Constant 1 for base case
-stack   .fill       0                                # Stack start     pos1     # Temporary = 1
-        sw          5           7           stack    # Save return address($7) on stack
-        add         5           6           5        # Increment stack pointer
-        sw          5           1           stack    # Save n on stack
-        add         5           6           5        # Increment stack pointer
-        sw          5           2           stack    # Save r on stack
-        add         5           6           5        # Increment stack pointer
-        sw          5           4           stack    # Save local variable ($4) on stack
-        add         5           6           5        # Increment stack pointer
-        beq         1           2           return   # If n == r, return 1
-        beq         2           0           return   # If r == 0, return 1
-        lw          0           6           elseAd   # Load else address
-        jalr        6           0                    # Jump to else block
-return  lw          0           3           pos1     # Set $3 to 1
-        lw          0           6           popAdd   # Load pop address
-        jalr        6           0                    # Jump to pop
-else    lw          0           6           neg1     # Temporary = -1
-        add         1           6           1        # n = n - 1
-        lw          0           6           comAdr   # Load comb address
-        jalr        6           7                    # Recursive call comb(n-1, r)
-        add         0           3           4        # Save result of comb(n-1, r) to $4
-        lw          0           6           neg1     # Temporary = -1
-        add         2           6           2        # r = r - 1
-        lw          0           6           comAdr   # Load comb address
-        jalr        6           7                    # Recursive call comb(n-1, r-1)
-        add         3           4           3        # Add comb(n-1, r) + comb(n-1, r-1)
-        lw          0           6           popAdd   # Load pop address
-        jalr        6           0                    # Jump to pop
-pop     lw          0           6           neg1     # Temporary = -1
-        add         5           6           5        # Decrement stack pointer
-        lw          5           4           stack    # Restore local variable ($4)
-        add         5           6           5        # Decrement stack pointer
-        lw          5           2           stack    # Restore r
-        add         5           6           5        # Decrement stack pointer
-        lw          5           1           stack    # Restore n
-        add         5           6           5        # Decrement stack pointer
-        lw          5           7           stack    # Restore return address($7)
-        jalr        7           0                    # Return from function
-retAdr  .fill       return
-elseAd  .fill       else
-popAdd  .fill       pop
-comAdr  .fill       comb
-n       .fill       7                                # Input n = 7
-r       .fill       3                                # Input r = 3
-neg1    .fill       -1                               # Constant -1 for subtraction
-pos1    .fill       1                                # Constant 1 for base case
-stack   .fill       0                                # Stack start
+haltD halt                                          # Stop execution
+dividn      .fill    1234       # Dividend (the number to be divided)
+divsor      .fill    123        # Divisor (the number to divide by)
+zero        .fill    0          # Constant for 0 (used to initialize quotient/remainder)
+one         .fill    1          # Constant for 1 (used for incrementing quotient)
+neg1        .fill    -1         # Constant for -1 (used for stack pointer decrement)
+quotnt      .fill    0          # Initialize quotient (result of division)
+remndr      .fill    0          # Initialize remainder
+stackP      .fill    1024       # Stack pointer (set to a high memory address)
+haltAd      .fill    haltD       # Address of halt subroutine
+doneAd      .fill    done       # Address of done function
+divAdr      .fill    divide     # Address of divide subroutine
