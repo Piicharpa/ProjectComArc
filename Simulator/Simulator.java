@@ -36,7 +36,7 @@ public class Simulator {
     // ฟังก์ชันหลักที่ควบคุมการทำงานของเครื่องจำลอง
     public static void main(String[] args) {
         // เลือกไฟล์จากโฟลเดอร์
-        String fileName = selectFile("Output/");
+        String fileName = selectFile("/Output");
         if (fileName == null) return;
 
         // โหลดไฟล์และตั้งค่าหน่วยความจำ
@@ -102,7 +102,7 @@ public class Simulator {
             //32 bit ; shift right 22 bit
             int opcode = state.mem[state.pc] >> 22; //ฐาน 10
 
-            System.out.println(opcode);
+            // System.out.println(opcode);
             switch (opcode) {
                 case 0: // ADD
                     executeRFormat(state, (a, b) -> a + b);
@@ -157,10 +157,10 @@ public class Simulator {
     // ฟังก์ชันสำหรับคำสั่ง Load/Store (LW, SW)
     private static void executeLoadStore(State state, boolean isLoad) {
         int[] args = decodeIFormat(state.mem[state.pc]);
-        for(int i = 0; i < args.length; i++){
-            System.out.print(args[i] + " ");
-        }
-        System.out.println();
+        // for(int i = 0; i < args.length; i++){
+        //     System.out.print(args[i] + " ");
+        // }
+        // System.out.println();
         int offset = args[2] + state.reg[args[0]]; //offsetField บวกกับค่าใน regA
         System.out.println(offset);
 
