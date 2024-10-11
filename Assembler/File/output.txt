@@ -1,0 +1,142 @@
+label: divide address: 10
+label: div_lp address: 20
+label: q_add address: 31
+label: haltC address: 34
+label: done address: 36
+label: haltD address: 47
+address: 48
+Symbolic: dividn
+Instruction: .fill
+Argument 1: 1234
+
+val 1234
+sym: dividn address: 48
+address: 49
+Symbolic: divsor
+Instruction: .fill
+Argument 1: 123
+
+val 123
+sym: divsor address: 49
+address: 50
+Symbolic: zero
+Instruction: .fill
+Argument 1: 0
+
+val 0
+sym: zero address: 50
+address: 51
+Symbolic: one
+Instruction: .fill
+Argument 1: 1
+
+val 1
+sym: one address: 51
+address: 52
+Symbolic: neg1
+Instruction: .fill
+Argument 1: -1
+
+val -1
+sym: neg1 address: 52
+address: 53
+Symbolic: quotnt
+Instruction: .fill
+Argument 1: 0
+
+val 0
+sym: quotnt address: 53
+address: 54
+Symbolic: remndr
+Instruction: .fill
+Argument 1: 0
+
+val 0
+sym: remndr address: 54
+address: 55
+Symbolic: stackP
+Instruction: .fill
+Argument 1: 1024
+
+val 1024
+sym: stackP address: 55
+address: 56
+Symbolic: haltAd
+Instruction: .fill
+Argument 1: haltD
+
+val haltD
+sym: haltAd address: 56
+address: 57
+Symbolic: doneAd
+Instruction: .fill
+Argument 1: done
+
+val done
+sym: doneAd address: 57
+address: 58
+Symbolic: divAdr
+Instruction: .fill
+Argument 1: divide
+
+val divide
+sym: divAdr address: 58
+8454192
+8519729
+8585266
+8650802
+8847415
+8781876
+8716346
+23986176
+8716345
+23592960
+16646144
+4128774
+16318464
+4128774
+16384000
+4128774
+16449536
+4128774
+16515072
+4128774
+17301519
+17825804
+8716340
+7471106
+3538949
+589830
+17301508
+17432579
+8781875
+1769478
+16842741
+8781875
+1769478
+16777218
+8716344
+23592960
+12320768
+8781875
+4128774
+12255232
+4128774
+12189696
+4128774
+12124160
+4128774
+12451840
+24117248
+25165824
+1234
+123
+0
+1
+-1
+0
+0
+1024
+47
+36
+10

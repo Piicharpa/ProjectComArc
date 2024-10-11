@@ -26,7 +26,7 @@ public class Evaluator {
                 else if (labelTable.containsKey(line.getLabel())) throw new EvalException.SameLabel(line.getLabel());
                 else {
                     labelTable.put(line.getLabel(), line.getAddress());
-                    System.out.println("label: " + line.getLabel() + " address: " + labelTable.get(line.getLabel()));
+                    // System.out.println("label: " + line.getLabel() + " address: " + labelTable.get(line.getLabel()));
                 }
             }
         }
@@ -34,10 +34,10 @@ public class Evaluator {
         for (ParsedLine line : parsedLines) {
              // Handle .fill (sysmbolic) 
             if (line.getInstruction() != null && line.getInstruction().equals(".fill")) {
-                System.out.println(line.toString());
+                // System.out.println(line.toString());
                 if (!line.getArguments().isEmpty()) {
                     String value = line.getArguments().get(0);
-                    System.out.println("val " + value);
+                    // System.out.println("val " + value);
 
                     if (labelTable.containsKey(value)) {
                         // Handle symbolic address (e.g., start)
@@ -53,7 +53,7 @@ public class Evaluator {
                     }
 
                     addressTable.put(line.getSymbolic(), line.getAddress());
-                    System.out.println("sym: " + line.getSymbolic() + " address: " + addressTable.get(line.getSymbolic()));
+                    // System.out.println("sym: " + line.getSymbolic() + " address: " + addressTable.get(line.getSymbolic()));
                 }
             }
         }
