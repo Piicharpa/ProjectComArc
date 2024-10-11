@@ -59,7 +59,7 @@ public class Simulator {
         return true; // Return true if successfully loaded
     }
 
-    //
+    //hi
     // Simulate the machine execution
     public static void simulateMachine(MachineState state) {
         int instructionCount = 0;
