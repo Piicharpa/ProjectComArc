@@ -1,7 +1,7 @@
-        lw      0   1   c       Load multiplicand (c) into reg 1
-        lw      0   2   p       Load multiplier (p) into reg 2
-        lw      0   3   pos0    Initialize result to 0 in reg 3
-        lw      0   4   pos1    Load constant 1 into reg 4 for LSB check
+        lw      0   1   c       Load multiplicand (c) into $1
+        lw      0   2   p       Load multiplier (p) into $2
+        lw      0   3   pos0    Initialize result to 0 in $3
+        lw      0   4   pos1    Load constant 1 into $4 for LSB check
         lw      0   5   pos0    Initialize loop counter or stack pointer
 
 loop    beq     2   0   done    If p == 0, jump to done (end)
@@ -15,7 +15,7 @@ sadd    add     1   1   1       mcand = mcand << 1
         
         beq     0   0   loop    Jump back to loop to continue the calculation
 
-done    add     3   0   1       Move the final result from reg 3 to reg 1
+done    add     3   0   1       Move the final result from $3 to $1
         halt                    Stop execution
 
 pos0    .fill   0       Constant 0 for initialization
