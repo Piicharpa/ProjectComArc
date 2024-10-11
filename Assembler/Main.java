@@ -1,20 +1,13 @@
 package Assembler;
 
-import Assembler.Parser.Parser;
-import Assembler.Parser.ParsedLine;
-import Assembler.Evaluator.Evaluator;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.List;
-
 public class Main {
 
     public static void main(String[] args) {
+
         try {
             // String filePath = "Assembler/File/Pmulti.txt";
-            String filePath = "Assembler/File/Pcombine.txt";
-            // String filePath = "Assembler/File/Pdivide.txt";
+//              String filePath = "Assembler/File/Pcombine.txt";
+            String filePath = "Assembler/File/Pdivide.txt";
 
             // String filePath = "Multiplication/multiplication.asm";
             // String filePath = "Combination/combination.asm";
@@ -25,27 +18,18 @@ public class Main {
             Parser parser = new Parser(); 
             int address = 0;
 
-            while ((line = reader.readLine()) != null) {
-                if (!line.trim().isEmpty()) {
-                    ParsedLine parsedLine = parser.parseLine(line, address); // Parse each line
-                    parsedLines.add(parsedLine); // Add parsed line to the list
-                    address++;
-                    // System.out.println(parsedLine);
-                }
-            }
-            reader.close();
+        // ตัวอย่างการใช้ AssemblerProcessor
+        AssemblerProcessor processor = new AssemblerProcessor();
 
-            // สร้าง Evaluator สำหรับประเมินผลโค้ด
-            Evaluator evaluator = new Evaluator();
-            evaluator.evaluate(parsedLines);
-            
-            System.out.println( "Assembler completed successfully.");
-            System.exit(0);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Assembler failed due to errors.");
-            System.exit(1);
-        }
+        // Input file path
+        String inputFilePath = "Assembler/File/Pdivide.txt";
+
+        // Output file path
+        String outputFilePath = "Assembler/File/output.txt";
+
+        // เรียกใช้ method process เพื่อประมวลผล assembly input จากไฟล์ inputFilePath
+        // และเขียนผลลัพธ์ลงไฟล์ outputFilePath
+        processor.process(inputFilePath, outputFilePath);
     }
 }
