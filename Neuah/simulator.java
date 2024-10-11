@@ -1,3 +1,4 @@
+//ส่วนนี้จะเป็นการเอาไฟล์ที่ได้จาก การผ่านโปรแกรม Assembler ซึ่งได้ machine code มาทำเป็น instruction เพื่อให้ได้ Result
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -5,50 +6,48 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class simulator {
-    private static final int NUMMEMORY = 65536; // Maximum memory units
-    private static final int NUMREGS = 8; // Number of registers in the machine
-    private static final int MAXLINELENGTH = 5000; // Maximum number of instructions for testing
+    private static final int NUMMEMORY = 65536; // จำนวนหน่วยความจำสูงสุด
+    private static final int NUMREGS = 8; // จำนวนเรจิสเตอร์ของเครื่อง
+    private static final int MAXLINELENGTH = 5000; // จำนวนคำสั่งสูงสุดสำหรับการทดสอบ
 
-    // Structure to hold the state of the machine
+    // โครงสร้างที่เก็บสถานะของเครื่อง
     public static class State {
-        int pc = 0; // Program Counter (points to the next instruction)
-        int[] mem = new int[NUMMEMORY]; // Memory
-        int[] reg = new int[NUMREGS]; // Registers
-        int numMemory = 0; // Number of memory units used
+        int pc = 0; // Program Counter (ชี้ไปยังคำสั่งถัดไป)
+        int[] mem = new int[NUMMEMORY]; // หน่วยความจำ
+        int[] reg = new int[NUMREGS]; // เรจิสเตอร์
+        int numMemory = 0; // จำนวนหน่วยความจำที่ถูกใช้
     }
 
-    // Function to print the state of the machine
+    // ฟังก์ชันสำหรับแสดงสถานะของเครื่อง
     public static void printState(State state) {
-        System.out.println("\n@@@\nState:");
-        System.out.println("\tPC: " + state.pc);
-        System.out.println("\tMemory:");
+        System.out.println("\n@@@\nstate:");
+        System.out.println("\tpc: " + state.pc);
+        System.out.println("\tmemory:");
         for (int i = 0; i < state.numMemory; i++) {
             System.out.println("\t\tmem[" + i + "] = " + state.mem[i]);
         }
-        System.out.println("\tRegisters:");
+        System.out.println("\tregisters:");
         for (int i = 0; i < NUMREGS; i++) {
             System.out.println("\t\treg[" + i + "] = " + state.reg[i]);
         }
-        System.out.println("End state\n");
+        System.out.println("end state\n");
     }
 
-    // Main function controlling the operation of the simulator
+    // ฟังก์ชันหลักที่ควบคุมการทำงานของเครื่องจำลอง
     public static void main(String[] args) {
-
-        // Select file from folder
+        // เลือกไฟล์จากโฟลเดอร์
         String fileName = selectFile("Output/");
         if (fileName == null) return;
 
-        // Load file and set memory
+        // โหลดไฟล์และตั้งค่าหน่วยความจำ
         State state = new State();
         if (!loadMemoryFromFile(state, fileName)) return;
 
-        // Start simulating the machine's operation
+        // เริ่มจำลองการทำงานของเครื่อง
         simulateMachine(state);
-
     }
 
-    // Function to select a file
+    // ฟังก์ชันเลือกไฟล์
     private static String selectFile(String folderPath) {
         File folder = new File(folderPath);
         File[] listOfFiles = folder.listFiles();
@@ -77,15 +76,11 @@ public class simulator {
         return folderPath + listOfFiles[fileIndex].getName();
     }
 
-    // Function to load memory from a file
+    // ฟังก์ชันโหลดหน่วยความจำจากไฟล์
     private static boolean loadMemoryFromFile(State state, String fileName) {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (state.numMemory >= NUMMEMORY) {
-                    System.err.println("Error: Memory overflow while loading file.");
-                    return false;
-                }
                 state.mem[state.numMemory] = Integer.parseInt(line);
                 state.numMemory++;
             }
@@ -95,25 +90,18 @@ public class simulator {
             System.err.println("Error: Can't open file " + fileName);
             e.printStackTrace();
             return false;
-        } catch (NumberFormatException e) {
-            System.err.println("Error: Invalid number format in file " + fileName);
-            e.printStackTrace();
-            return false;
         }
     }
 
-    // Function to simulate the operation of the machine
+    // ฟังก์ชันจำลองการทำงานของเครื่อง
     private static void simulateMachine(State state) {
-        int totalInstructions = 0;
+        int totalInstructions = 1;
 
         while (true) {
             printState(state);
-            if (state.pc < 0 || state.pc >= state.numMemory) {
-                System.err.println("Error: Program Counter out of bounds.");
-                break;
-            }
-
-            int opcode = state.mem[state.pc] >> 22;
+            //32 bit ; shift right 22 bit
+            int opcode = state.mem[state.pc] >> 22; //ฐาน 10
+            System.out.println(opcode);
 
             switch (opcode) {
                 case 0: // ADD
@@ -134,9 +122,12 @@ public class simulator {
                 case 5: // JALR
                     executeJALR(state);
                     break;
-                case 6: // HALT
+                    case 6: // HALT
                     System.out.println("Machine halted.");
                     System.out.println("Total of " + totalInstructions + " instructions executed.");
+                    System.out.println("Final state of the machine:");
+                    state.pc++;
+                    printState(state);
                     return;
                 case 7: // NOOP
                     break;
@@ -154,35 +145,34 @@ public class simulator {
             }
         }
 
-        System.out.println("Final state of the machine:");
-        printState(state);
+        
     }
 
-    // Function for R-Format instructions (ADD, NAND)
+    // ฟังก์ชันสำหรับคำสั่ง R-Format (ADD, NAND)
     private static void executeRFormat(State state, ArithmeticOperation operation) {
         int[] args = decodeRFormat(state.mem[state.pc]);
         state.reg[args[2]] = operation.apply(state.reg[args[0]], state.reg[args[1]]);
     }
 
-    // Function for Load/Store instructions (LW, SW)
+    // ฟังก์ชันสำหรับคำสั่ง Load/Store (LW, SW)
     private static void executeLoadStore(State state, boolean isLoad) {
         int[] args = decodeIFormat(state.mem[state.pc]);
-        int offset = args[2] + state.reg[args[0]];
-
-        // Memory access check
-        if (offset < 0 || offset >= NUMMEMORY) {
-            System.err.println("Memory access error: Invalid memory access at address " + offset);
-            System.exit(1);
+        for(int i = 0; i < args.length; i++){
+            System.out.print(args[i] + " ");
         }
+        System.out.println();
+        int offset = args[2] + state.reg[args[0]]; //offsetField บวกกับค่าใน regA
+        System.out.println(offset);
+
 
         if (isLoad) {
-            state.reg[args[1]] = state.mem[offset]; //load
+            state.reg[args[1]] = state.mem[offset];
         } else {
-            state.mem[offset] = state.reg[args[1]]; //store
+            state.mem[offset] = state.reg[args[1]];
         }
     }
 
-    // Function for BEQ instruction
+    // ฟังก์ชันสำหรับคำสั่ง BEQ
     private static void executeBranch(State state) {
         int[] args = decodeIFormat(state.mem[state.pc]);
         if (state.reg[args[0]] == state.reg[args[1]]) {
@@ -190,23 +180,30 @@ public class simulator {
         }
     }
 
-    // Function for JALR instruction
+    // ฟังก์ชันสำหรับคำสั่ง JALR
     private static void executeJALR(State state) {
-        int[] args = decodeRFormat(state.mem[state.pc]);
+        int[] args = decodeJFormat(state.mem[state.pc]);
         state.reg[args[1]] = state.pc + 1;
         state.pc = state.reg[args[0]] - 1;
     }
 
-    // Function to decode R-Format instructions
+    private static int[] decodeJFormat(int instruction){
+        return new int[]{
+            (instruction >> 19) & 7, // regA (Bits 21-19)
+            (instruction >> 16) & 7  // regB (rd, Bits 18-16)
+        };
+    }
+
+    // ฟังก์ชันถอดรหัส R-Format
     private static int[] decodeRFormat(int instruction) {
         return new int[]{
                 (instruction >> 19) & 7, // regA
                 (instruction >> 16) & 7, // regB
-                instruction & 7          // destReg
+                instruction & 7           // destReg
         };
     }
 
-    // Function to decode I-Format instructions
+    // ฟังก์ชันถอดรหัส I-Format
     private static int[] decodeIFormat(int instruction) {
         return new int[]{
                 (instruction >> 19) & 7, // regA
@@ -215,7 +212,7 @@ public class simulator {
         };
     }
 
-    // Function to convert 16-bit to signed integer
+    // ฟังก์ชันแปลงเลข 16-bit ให้เป็น signed integer
     private static int convertNum(int num) {
         if ((num & (1 << 15)) != 0) {
             return num - (1 << 16);
@@ -223,9 +220,30 @@ public class simulator {
         return num;
     }
 
-    // Interface for custom arithmetic operations
+    // อินเตอร์เฟซสำหรับคำนวณแบบกำหนดเอง
     @FunctionalInterface
     interface ArithmeticOperation {
         int apply(int a, int b);
     }
+
+
+
+
+
+    // public static class AssemblyInstruction {
+    //     public String label;
+    //     public String instruction;
+    //     public int[] fields = new int[3];
+    //     public int numFields;
+
+    //     public AssemblyInstruction(String label, String instruction, int field0, int field1, int field2, int numFields) {
+    //         this.label = label;
+    //         this.instruction = instruction;
+    //         this.fields[0] = field0;
+    //         this.fields[1] = field1;
+    //         this.fields[2] = field2;
+    //         this.numFields = numFields;
+    //     }
+    // }
+
 }
