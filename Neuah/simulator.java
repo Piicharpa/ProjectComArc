@@ -122,7 +122,7 @@ public class simulator {
                 case 5: // JALR
                     executeJALR(state);
                     break;
-                case 6: // HALT
+                    case 6: // HALT
                     System.out.println("Machine halted.");
                     System.out.println("Total of " + totalInstructions + " instructions executed.");
                     System.out.println("Final state of the machine:");

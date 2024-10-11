@@ -101,7 +101,6 @@ public class Simulator {
             printState(state);
             //32 bit ; shift right 22 bit
             int opcode = state.mem[state.pc] >> 22; //ฐาน 10
-            System.out.println(opcode);
 
             switch (opcode) {
                 case 0: // ADD
@@ -157,12 +156,8 @@ public class Simulator {
     // ฟังก์ชันสำหรับคำสั่ง Load/Store (LW, SW)
     private static void executeLoadStore(State state, boolean isLoad) {
         int[] args = decodeIFormat(state.mem[state.pc]);
-        for(int i = 0; i < args.length; i++){
-            System.out.print(args[i] + " ");
-        }
-        System.out.println();
         int offset = args[2] + state.reg[args[0]]; //offsetField บวกกับค่าใน regA
-        System.out.println(offset);
+        
 
 
         if (isLoad) {

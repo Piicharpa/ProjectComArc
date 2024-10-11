@@ -13,10 +13,10 @@ public class Main {
     public static void main(String[] args) {
         try {
             // String filePath = "Assembler/File/Pmulti.txt";
-            // String filePath = "Assembler/File/Pcombine.txt";
+            String filePath = "Assembler/File/Pcombine.txt";
             // String filePath = "Assembler/File/Pdivide.txt";
 
-            String filePath = "Multiplication/multiplication.asm";
+            // String filePath = "Multiplication/multiplication.asm";
             // String filePath = "Combination/combination.asm";
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             String line;
