@@ -6,12 +6,12 @@
 
 loop    beq     2   0   done    If p == 0, jump to done (end)
         add     6   2   4       $6 = p & 1 (check LSB of p)
-        beq     6   0   skip_add        If LSB of p is 0, skip addition
+        beq     6   0   sadd    If LSB of p is 0, skip addition
 
         add     3   1   3       result = result + c 
 
-skip_add        add     1   1   1       mcand = mcand << 1
-                add     2   2   2       mplier = mplier >> 1 
+sadd    add     1   1   1       mcand = mcand << 1
+        add     2   2   2       mplier = mplier >> 1 
         
         beq     0   0   loop    Jump back to loop to continue the calculation
 
