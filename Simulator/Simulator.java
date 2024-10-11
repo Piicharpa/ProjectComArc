@@ -102,6 +102,7 @@ public class Simulator {
             //32 bit ; shift right 22 bit
             int opcode = state.mem[state.pc] >> 22; //ฐาน 10
 
+            System.out.println(opcode);
             switch (opcode) {
                 case 0: // ADD
                     executeRFormat(state, (a, b) -> a + b);
@@ -156,8 +157,12 @@ public class Simulator {
     // ฟังก์ชันสำหรับคำสั่ง Load/Store (LW, SW)
     private static void executeLoadStore(State state, boolean isLoad) {
         int[] args = decodeIFormat(state.mem[state.pc]);
+        for(int i = 0; i < args.length; i++){
+            System.out.print(args[i] + " ");
+        }
+        System.out.println();
         int offset = args[2] + state.reg[args[0]]; //offsetField บวกกับค่าใน regA
-        
+        System.out.println(offset);
 
 
         if (isLoad) {
@@ -224,21 +229,5 @@ public class Simulator {
 
 
 
-
-    // public static class AssemblyInstruction {
-    //     public String label;
-    //     public String instruction;
-    //     public int[] fields = new int[3];
-    //     public int numFields;
-
-    //     public AssemblyInstruction(String label, String instruction, int field0, int field1, int field2, int numFields) {
-    //         this.label = label;
-    //         this.instruction = instruction;
-    //         this.fields[0] = field0;
-    //         this.fields[1] = field1;
-    //         this.fields[2] = field2;
-    //         this.numFields = numFields;
-    //     }
-    // }
 
 }
