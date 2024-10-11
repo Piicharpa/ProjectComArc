@@ -6,7 +6,7 @@ public class Main {
         AssemblerProcessor processor = new AssemblerProcessor();
 
         // Input file path
-        // String inputFilePath = "Assembler/File/multiNeuah.txt";
+
         String inputFilePath = "Combination/combination.asm";
 
         // Output file path

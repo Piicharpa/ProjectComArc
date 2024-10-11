@@ -5,7 +5,7 @@
         lw      0   5   pos0    Initialize loop counter or stack pointer
 
 loop    beq     2   0   done    If p == 0, jump to done (end)
-        and     6   2   4       $6 = p & 1 (check LSB of p)
+        add     6   2   4       $6 = p & 1 (check LSB of p)
         beq     6   0   skip_add        If LSB of p is 0, skip addition
 
         add     3   1   3       result = result + c 
