@@ -171,7 +171,7 @@ public class Simulator {
     public static int signExtend(int value) {
         return (value & (1 << 15)) != 0 ? value - (1 << 16) : value; // Sign extension
     }
-
+//
     // Class representing the state of the machine
     static class MachineState {
         int pc; // Program counter
