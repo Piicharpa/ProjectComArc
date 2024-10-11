@@ -1,231 +1,194 @@
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Scanner;
 
 public class simulator {
-    private static final int NUMMEMORY = 65536; // Maximum memory units
-    private static final int NUMREGS = 8; // Number of registers in the machine
-    private static final int MAXLINELENGTH = 5000; // Maximum number of instructions for testing
 
-    // Structure to hold the state of the machine
+    private static final int NUM_MEMORY = 65536;  // Size of the memory (65536 words)
+    private static final int NUM_REGISTERS = 8;   // Number of registers (8 registers)
+
+    // Opcodes
+    private static final int ADD = 0;
+    private static final int NAND = 1;
+    private static final int LW = 2;
+    private static final int SW = 3;
+    private static final int BEQ = 4;
+    private static final int JALR = 5;
+    private static final int HALT = 6;
+    private static final int NOOP = 7;
+
     public static class State {
-        int pc = 0; // Program Counter (points to the next instruction)
-        int[] mem = new int[NUMMEMORY]; // Memory
-        int[] reg = new int[NUMREGS]; // Registers
-        int numMemory = 0; // Number of memory units used
+        int pc;                          // Program Counter
+        int[] memory;                    // Memory (65536 words)
+        int[] registers;                 // 8 Registers
+        int memorySize;                  // Size of the loaded memory
+
+        public State() {
+            pc = 0;
+            memory = new int[NUM_MEMORY];
+            registers = new int[NUM_REGISTERS];
+        }
     }
 
-    // Function to print the state of the machine
-    public static void printState(State state) {
-        System.out.println("\n@@@\nState:");
-        System.out.println("\tPC: " + state.pc);
-        System.out.println("\tMemory:");
-        for (int i = 0; i < state.numMemory; i++) {
-            System.out.println("\t\tmem[" + i + "] = " + state.mem[i]);
-        }
-        System.out.println("\tRegisters:");
-        for (int i = 0; i < NUMREGS; i++) {
-            System.out.println("\t\treg[" + i + "] = " + state.reg[i]);
-        }
-        System.out.println("End state\n");
-    }
-
-    // Main function controlling the operation of the simulator
     public static void main(String[] args) {
-
-        // Select file from folder
-        String fileName = selectFile("Output/");
-        if (fileName == null) return;
-
-        // Load file and set memory
         State state = new State();
-        if (!loadMemoryFromFile(state, fileName)) return;
+        loadProgram(state, "machinecode.txt"); // Load the machine code from file
 
-        // Start simulating the machine's operation
-        simulateMachine(state);
-
-    }
-
-    // Function to select a file
-    private static String selectFile(String folderPath) {
-        File folder = new File(folderPath);
-        File[] listOfFiles = folder.listFiles();
-
-        if (listOfFiles == null || listOfFiles.length == 0) {
-            System.err.println("Error: No files found in Output folder");
-            return null;
+        // Initialize registers to 0
+        for (int i = 0; i < NUM_REGISTERS; i++) {
+            state.registers[i] = 0;
         }
 
-        System.out.println("Select a file to read:");
-        for (int i = 0; i < listOfFiles.length; i++) {
-            if (listOfFiles[i].isFile()) {
-                System.out.println(i + ": " + listOfFiles[i].getName());
-            }
-        }
-
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter file number: ");
-        int fileIndex = scanner.nextInt();
-
-        if (fileIndex < 0 || fileIndex >= listOfFiles.length || !listOfFiles[fileIndex].isFile()) {
-            System.err.println("Error: Invalid file selection");
-            return null;
-        }
-
-        return folderPath + listOfFiles[fileIndex].getName();
-    }
-
-    // Function to load memory from a file
-    private static boolean loadMemoryFromFile(State state, String fileName) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (state.numMemory >= NUMMEMORY) {
-                    System.err.println("Error: Memory overflow while loading file.");
-                    return false;
-                }
-                state.mem[state.numMemory] = Integer.parseInt(line);
-                state.numMemory++;
-            }
-            System.out.println("Loaded " + state.numMemory + " words into memory.");
-            return true;
-        } catch (IOException e) {
-            System.err.println("Error: Can't open file " + fileName);
-            e.printStackTrace();
-            return false;
-        } catch (NumberFormatException e) {
-            System.err.println("Error: Invalid number format in file " + fileName);
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    // Function to simulate the operation of the machine
-    private static void simulateMachine(State state) {
-        int totalInstructions = 0;
-
+        // Simulate the program until halted
         while (true) {
-            printState(state);
-            if (state.pc < 0 || state.pc >= state.numMemory) {
-                System.err.println("Error: Program Counter out of bounds.");
-                break;
-            }
+            printState(state); // Print state before executing instruction
 
-            int opcode = state.mem[state.pc] >> 22;
+            int instruction = state.memory[state.pc];
+            int opcode = (instruction >> 22) & 0b111;
 
             switch (opcode) {
-                case 0: // ADD
-                    executeRFormat(state, (a, b) -> a + b);
+                case ADD:
+                    executeAdd(state, instruction);
                     break;
-                case 1: // NAND
-                    executeRFormat(state, (a, b) -> ~(a & b));
+                case NAND:
+                    executeNand(state, instruction);
                     break;
-                case 2: // LW
-                    executeLoadStore(state, true);
+                case LW:
+                    executeLw(state, instruction);
                     break;
-                case 3: // SW
-                    executeLoadStore(state, false);
+                case SW:
+                    executeSw(state, instruction);
                     break;
-                case 4: // BEQ
-                    executeBranch(state);
+                case BEQ:
+                    executeBeq(state, instruction);
                     break;
-                case 5: // JALR
-                    executeJALR(state);
+                case JALR:
+                    executeJalr(state, instruction);
                     break;
-                case 6: // HALT
-                    System.out.println("Machine halted.");
-                    System.out.println("Total of " + totalInstructions + " instructions executed.");
-                    return;
-                case 7: // NOOP
-                    break;
+                case HALT:
+                    System.out.println("Halted.");
+                    printState(state);
+                    return; // End simulation
+                case NOOP:
+                    break; // Do nothing
                 default:
-                    System.err.println("Unknown opcode: " + opcode);
+                    System.err.println("Error: Unknown opcode.");
                     return;
             }
 
-            state.pc++;
-            totalInstructions++;
-
-            if (totalInstructions > MAXLINELENGTH) {
-                System.out.println("Max instruction length reached.");
-                break;
+            if (opcode != JALR && opcode != BEQ) {
+                state.pc++; // Move to the next instruction unless JALR/BEQ modifies PC
             }
         }
-
-        System.out.println("Final state of the machine:");
-        printState(state);
     }
 
-    // Function for R-Format instructions (ADD, NAND)
-    private static void executeRFormat(State state, ArithmeticOperation operation) {
-        int[] args = decodeRFormat(state.mem[state.pc]);
-        state.reg[args[2]] = operation.apply(state.reg[args[0]], state.reg[args[1]]);
-    }
-
-    // Function for Load/Store instructions (LW, SW)
-    private static void executeLoadStore(State state, boolean isLoad) {
-        int[] args = decodeIFormat(state.mem[state.pc]);
-        int offset = args[2] + state.reg[args[0]];
-
-        // Memory access check
-        if (offset < 0 || offset >= NUMMEMORY) {
-            System.err.println("Memory access error: Invalid memory access at address " + offset);
-            System.exit(1);
+    // Load the machine code program into memory
+    private static void loadProgram(State state, String filename) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                state.memory[state.memorySize] = Integer.parseInt(line);
+                state.memorySize++;
+            }
+        } catch (IOException e) {
+            System.err.println("Error: Unable to load program file.");
         }
+    }
 
-        if (isLoad) {
-            state.reg[args[1]] = state.mem[offset]; //load
+    // Add instruction (ADD)
+    private static void executeAdd(State state, int instruction) {
+        int regA = (instruction >> 19) & 0b111;
+        int regB = (instruction >> 16) & 0b111;
+        int destReg = instruction & 0b111;
+        if (destReg != 0) { // Register 0 is always 0
+            state.registers[destReg] = state.registers[regA] + state.registers[regB];
+        }
+    }
+
+    // Nand instruction (NAND)
+    private static void executeNand(State state, int instruction) {
+        int regA = (instruction >> 19) & 0b111;
+        int regB = (instruction >> 16) & 0b111;
+        int destReg = instruction & 0b111;
+        if (destReg != 0) {
+            state.registers[destReg] = ~(state.registers[regA] & state.registers[regB]);
+        }
+    }
+
+    // Load Word instruction (LW)
+    private static void executeLw(State state, int instruction) {
+        int regA = (instruction >> 19) & 0b111;
+        int regB = (instruction >> 16) & 0b111;
+        int offsetField = signExtend(instruction & 0xFFFF); // Sign extension
+        int address = state.registers[regA] + offsetField;
+
+        if (address >= 0 && address < NUM_MEMORY) {
+            state.registers[regB] = state.memory[address];
         } else {
-            state.mem[offset] = state.reg[args[1]]; //store
+            System.err.println("Error: Memory address out of bounds.");
         }
     }
 
-    // Function for BEQ instruction
-    private static void executeBranch(State state) {
-        int[] args = decodeIFormat(state.mem[state.pc]);
-        if (state.reg[args[0]] == state.reg[args[1]]) {
-            state.pc += args[2];
+    // Store Word instruction (SW)
+    private static void executeSw(State state, int instruction) {
+        int regA = (instruction >> 19) & 0b111;
+        int regB = (instruction >> 16) & 0b111;
+        int offsetField = signExtend(instruction & 0xFFFF); // Sign extension
+        int address = state.registers[regA] + offsetField;
+
+        if (address >= 0 && address < NUM_MEMORY) {
+            state.memory[address] = state.registers[regB];
+        } else {
+            System.err.println("Error: Memory address out of bounds.");
         }
     }
 
-    // Function for JALR instruction
-    private static void executeJALR(State state) {
-        int[] args = decodeRFormat(state.mem[state.pc]);
-        state.reg[args[1]] = state.pc + 1;
-        state.pc = state.reg[args[0]] - 1;
-    }
+    // Branch if Equal instruction (BEQ)
+    private static void executeBeq(State state, int instruction) {
+        int regA = (instruction >> 19) & 0b111;
+        int regB = (instruction >> 16) & 0b111;
+        int offsetField = signExtend(instruction & 0xFFFF); // Sign extension
 
-    // Function to decode R-Format instructions
-    private static int[] decodeRFormat(int instruction) {
-        return new int[]{
-                (instruction >> 19) & 7, // regA
-                (instruction >> 16) & 7, // regB
-                instruction & 7          // destReg
-        };
-    }
-
-    // Function to decode I-Format instructions
-    private static int[] decodeIFormat(int instruction) {
-        return new int[]{
-                (instruction >> 19) & 7, // regA
-                (instruction >> 16) & 7, // regB
-                convertNum(instruction & 0xFFFF) // offset
-        };
-    }
-
-    // Function to convert 16-bit to signed integer
-    private static int convertNum(int num) {
-        if ((num & (1 << 15)) != 0) {
-            return num - (1 << 16);
+        if (state.registers[regA] == state.registers[regB]) {
+            state.pc += offsetField; // Branch to target
         }
-        return num;
     }
 
-    // Interface for custom arithmetic operations
-    @FunctionalInterface
-    interface ArithmeticOperation {
-        int apply(int a, int b);
+    // Jump and Link instruction (JALR)
+    private static void executeJalr(State state, int instruction) {
+        int regA = (instruction >> 19) & 0b111;
+        int regB = (instruction >> 16) & 0b111;
+
+        int temp = state.pc + 1;
+        state.pc = state.registers[regA] - 1; // Jump to regA address
+        if (regB != 0) {
+            state.registers[regB] = temp; // Store PC+1 into regB
+        }
+    }
+
+    // Sign extension for 16-bit offset field
+    private static int signExtend(int value) {
+        if ((value & (1 << 15)) != 0) {
+            return value | 0xFFFF0000; // If the sign bit is 1, extend with 1's
+        }
+        return value; // If the sign bit is 0, no need for extension
+    }
+
+    // Print current state (registers, memory, and PC)
+    private static void printState(State state) {
+        System.out.println("@@@");
+        System.out.println("PC: " + state.pc);
+
+        System.out.println("Memory:");
+        for (int i = 0; i < state.memorySize; i++) {
+            System.out.println("mem[" + i + "] = " + state.memory[i]);
+        }
+
+        System.out.println("Registers:");
+        for (int i = 0; i < NUM_REGISTERS; i++) {
+            System.out.println("reg[" + i + "] = " + state.registers[i]);
+        }
+
+        System.out.println("End of state");
     }
 }
