@@ -1,233 +1,183 @@
-//ส่วนนี้จะเป็นการเอาไฟล์ที่ได้จาก การผ่านโปรแกรม Assembler ซึ่งได้ machine code มาทำเป็น instruction เพื่อให้ได้ Result
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Scanner;
 
 public class Simulator {
-    private static final int NUMMEMORY = 65536; // จำนวนหน่วยความจำสูงสุด
-    private static final int NUMREGS = 8; // จำนวนเรจิสเตอร์ของเครื่อง
-    private static final int MAXLINELENGTH = 5000; // จำนวนคำสั่งสูงสุดสำหรับการทดสอบ
 
-    // โครงสร้างที่เก็บสถานะของเครื่อง
-    public static class State {
-        int pc = 0; // Program Counter (ชี้ไปยังคำสั่งถัดไป)
-        int[] mem = new int[NUMMEMORY]; // หน่วยความจำ
-        int[] reg = new int[NUMREGS]; // เรจิสเตอร์
-        int numMemory = 0; // จำนวนหน่วยความจำที่ถูกใช้
-    }
-
-    // ฟังก์ชันสำหรับแสดงสถานะของเครื่อง
-    public static void printState(State state) {
-        System.out.println("\n@@@\nstate:");
-        System.out.println("\tpc: " + state.pc);
-        System.out.println("\tmemory:");
-        for (int i = 0; i < state.numMemory; i++) {
-            System.out.println("\t\tmem[" + i + "] = " + state.mem[i]);
-        }
-        System.out.println("\tregisters:");
-        for (int i = 0; i < NUMREGS; i++) {
-            System.out.println("\t\treg[" + i + "] = " + state.reg[i]);
-        }
-        System.out.println("end state\n");
-    }
-
-    // ฟังก์ชันหลักที่ควบคุมการทำงานของเครื่องจำลอง
     public static void main(String[] args) {
-        // เลือกไฟล์จากโฟลเดอร์
-        String fileName = selectFile("/Output");
+        // Select a file from the folder
+        String fileName = selectFile("Assembler/File/");
         if (fileName == null) return;
 
-        // โหลดไฟล์และตั้งค่าหน่วยความจำ
-        State state = new State();
+        // Load file and initialize machine state
+        MachineState state = new MachineState();
         if (!loadMemoryFromFile(state, fileName)) return;
 
-        // เริ่มจำลองการทำงานของเครื่อง
+        // Start machine simulation
         simulateMachine(state);
     }
 
-    // ฟังก์ชันเลือกไฟล์
-    private static String selectFile(String folderPath) {
-        File folder = new File(folderPath);
-        File[] listOfFiles = folder.listFiles();
-
-        if (listOfFiles == null || listOfFiles.length == 0) {
-            System.err.println("Error: No files found in Output folder");
+    // File selection from a folder
+    public static String selectFile(String folderPath) {
+        JFileChooser fileChooser = new JFileChooser(folderPath);
+        int returnValue = fileChooser.showOpenDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            return selectedFile.getAbsolutePath();
+        } else {
+            System.out.println("No file selected.");
             return null;
         }
-
-        System.out.println("Select a file to read:");
-        for (int i = 0; i < listOfFiles.length; i++) {
-            if (listOfFiles[i].isFile()) {
-                System.out.println(i + ": " + listOfFiles[i].getName());
-            }
-        }
-
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter file number: ");
-        int fileIndex = scanner.nextInt();
-
-        if (fileIndex < 0 || fileIndex >= listOfFiles.length || !listOfFiles[fileIndex].isFile()) {
-            System.err.println("Error: Invalid file selection");
-            return null;
-        }
-
-        return folderPath + listOfFiles[fileIndex].getName();
     }
 
-    // ฟังก์ชันโหลดหน่วยความจำจากไฟล์
-    private static boolean loadMemoryFromFile(State state, String fileName) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+    // Load machine code into memory from file
+    public static boolean loadMemoryFromFile(MachineState state, String fileName) {
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
-            while ((line = reader.readLine()) != null) {
-                state.mem[state.numMemory] = Integer.parseInt(line);
-                state.numMemory++;
+            int address = 0;
+
+            // Read lines from the file and load into memory
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue; // Skip empty lines
+                try {
+                    int instruction = Integer.parseInt(line.trim());
+                    state.mem[address++] = instruction;
+                } catch (NumberFormatException e) {
+                    System.out.println("Error reading instruction at address " + address + ": " + line);
+                    return false;
+                }
             }
-            System.out.println("Loaded " + state.numMemory + " words into memory.");
-            return true;
+            state.numMemory = address; // Update the count of memory instructions
+            state.highestNumMemory = address; // Set highest memory address used
         } catch (IOException e) {
-            System.err.println("Error: Can't open file " + fileName);
-            e.printStackTrace();
+            System.out.println("Error reading file: " + e.getMessage());
             return false;
         }
+
+        return true; // Return true if successfully loaded
     }
 
-    // ฟังก์ชันจำลองการทำงานของเครื่อง
-    private static void simulateMachine(State state) {
-        int totalInstructions = 1;
+    // Simulate the machine execution
+    public static void simulateMachine(MachineState state) {
+        int instructionCount = 0;
 
+        // Main simulation loop
         while (true) {
-            printState(state);
-            //32 bit ; shift right 22 bit
-            int opcode = state.mem[state.pc] >> 22; //ฐาน 10
+            if (instructionCount == 5000) break; // Limit to 5000 instructions
 
-            // System.out.println(opcode);
+            printState(state); // Print state before executing instruction
+
+            int instruction = fetch(state); // Fetch instruction
+
+            if (instruction == 0) { // Assuming '0' represents the halt instruction
+                halt();
+                System.out.println("Total of " + (instructionCount + 1) + " instructions executed.");
+                break;
+            }
+
+            int opcode = (instruction >> 22) & 0x7; // 22-24
+            int regA = (instruction >> 19) & 0x7;   // 19-21
+            int regB = (instruction >> 16) & 0x7;   // 16-18
+            int destReg = instruction & 0x7;        // Last 3 bits for destination register
+            int offset = instruction & 0xFFFF;      // Last 16 bits for offset
+
             switch (opcode) {
                 case 0: // ADD
-                    executeRFormat(state, (a, b) -> a + b);
+                    state.reg[destReg] = state.reg[regA] + state.reg[regB];
                     break;
+
                 case 1: // NAND
-                    executeRFormat(state, (a, b) -> ~(a & b));
+                    state.reg[destReg] = ~(state.reg[regA] & state.reg[regB]);
                     break;
-                case 2: // LW
-                    executeLoadStore(state, true);
+
+                case 2: // LW (Load Word)
+                    state.reg[regB] = state.mem[state.reg[regA] + signExtend(offset)];
                     break;
-                case 3: // SW
-                    executeLoadStore(state, false);
+
+                case 3: // SW (Store Word)
+                    state.mem[state.reg[regA] + signExtend(offset)] = state.reg[regB];
                     break;
-                case 4: // BEQ
-                    executeBranch(state);
+
+                case 4: // BEQ (Branch if Equal)
+                    if (state.reg[regA] == state.reg[regB]) {
+                        state.pc += signExtend(offset);
+                    }
                     break;
-                case 5: // JALR
-                    executeJALR(state);
+
+                case 5: // JALR (Jump and Link Register)
+                    state.reg[regB] = state.pc + 1;
+                    state.pc = state.reg[regA];
                     break;
+
                 case 6: // HALT
+                    halt();
                     System.out.println("Machine halted.");
-                    System.out.println("Total of " + totalInstructions + " instructions executed.");
+                    System.out.println("Total of " + instructionCount + " instructions executed.");
                     System.out.println("Final state of the machine:");
                     state.pc++;
                     printState(state);
-                    return;
-                case 7: // NOOP
+
+                case 7: // NOOP (No Operation)
                     break;
+
                 default:
-                    System.err.println("Unknown opcode: " + opcode);
+                    System.out.println("Error: Illegal opcode " + opcode);
                     return;
             }
 
-            state.pc++;
-            totalInstructions++;
-
-            if (totalInstructions > MAXLINELENGTH) {
-                System.out.println("Max instruction length reached.");
-                break;
-            }
+            instructionCount++;
+            updatePC(state); // Update PC after executing instruction
         }
 
-        
+        printState(state); // Print state before exiting
     }
 
-    // ฟังก์ชันสำหรับคำสั่ง R-Format (ADD, NAND)
-    private static void executeRFormat(State state, ArithmeticOperation operation) {
-        int[] args = decodeRFormat(state.mem[state.pc]);
-        state.reg[args[2]] = operation.apply(state.reg[args[0]], state.reg[args[1]]);
-    }
+   
 
-    // ฟังก์ชันสำหรับคำสั่ง Load/Store (LW, SW)
-    private static void executeLoadStore(State state, boolean isLoad) {
-        int[] args = decodeIFormat(state.mem[state.pc]);
-        // for(int i = 0; i < args.length; i++){
-        //     System.out.print(args[i] + " ");
-        // }
-        // System.out.println();
-        int offset = args[2] + state.reg[args[0]]; //offsetField บวกกับค่าใน regA
-        System.out.println(offset);
-
-
-        if (isLoad) {
-            state.reg[args[1]] = state.mem[offset];
-        } else {
-            state.mem[offset] = state.reg[args[1]];
+    // Print the current state of the machine
+    public static void printState(MachineState state) {
+        System.out.println("\n@@@\nState:");
+        System.out.println("\tPC: " + state.pc);
+        System.out.println("\tMemory:");
+        for (int i = 0; i < state.highestNumMemory; i++) {
+            System.out.println("\t\tmem[" + i + "] = " + state.mem[i]);
         }
-    }
-
-    // ฟังก์ชันสำหรับคำสั่ง BEQ
-    private static void executeBranch(State state) {
-        int[] args = decodeIFormat(state.mem[state.pc]);
-        if (state.reg[args[0]] == state.reg[args[1]]) {
-            state.pc += args[2];
+        System.out.println("\tRegisters:");
+        for (int i = 0; i < state.reg.length; i++) {
+            System.out.println("\t\treg[" + i + "] = " + state.reg[i]);
         }
+        System.out.println("End state\n");
     }
 
-    // ฟังก์ชันสำหรับคำสั่ง JALR
-    private static void executeJALR(State state) {
-        int[] args = decodeJFormat(state.mem[state.pc]);
-        state.reg[args[1]] = state.pc + 1;
-        state.pc = state.reg[args[0]] - 1;
+    // Fetch the instruction at the current PC
+    public static int fetch(MachineState state) {
+        return state.mem[state.pc]; // Return the instruction at PC
     }
 
-    private static int[] decodeJFormat(int instruction){
-        return new int[]{
-            (instruction >> 19) & 7, // regA (Bits 21-19)
-            (instruction >> 16) & 7  // regB (rd, Bits 18-16)
-        };
+    // Halt the simulator
+    public static void halt() {
+        System.out.println("Halt instruction encountered. Stopping simulation.");
     }
 
-    // ฟังก์ชันถอดรหัส R-Format
-    private static int[] decodeRFormat(int instruction) {
-        return new int[]{
-                (instruction >> 19) & 7, // regA
-                (instruction >> 16) & 7, // regB
-                instruction & 7           // destReg
-        };
+    // Increment the PC to point to the next instruction
+    public static void updatePC(MachineState state) {
+        state.pc += 1; // Increment PC
     }
 
-    // ฟังก์ชันถอดรหัส I-Format
-    private static int[] decodeIFormat(int instruction) {
-        return new int[]{
-                (instruction >> 19) & 7, // regA
-                (instruction >> 16) & 7, // regB
-                convertNum(instruction & 0xFFFF) // offset
-        };
+    // Sign extend the offset from 16 bits to 32 bits
+    public static int signExtend(int value) {
+        return (value & (1 << 15)) != 0 ? value - (1 << 16) : value; // Sign extension
     }
 
-    // ฟังก์ชันแปลงเลข 16-bit ให้เป็น signed integer
-    private static int convertNum(int num) {
-        if ((num & (1 << 15)) != 0) {
-            return num - (1 << 16);
-        }
-        return num;
+    // Class representing the state of the machine
+    static class MachineState {
+        int pc; // Program counter
+        int[] reg = new int[8]; // Assuming 8 registers
+        int[] mem = new int[65536]; // Assuming 64K memory size
+        int numMemory; // Number of instructions loaded into memory
+        int highestNumMemory; // Highest memory address used
     }
-
-    // อินเตอร์เฟซสำหรับคำนวณแบบกำหนดเอง
-    @FunctionalInterface
-    interface ArithmeticOperation {
-        int apply(int a, int b);
-    }
-
-
-
-
-
 }
+
