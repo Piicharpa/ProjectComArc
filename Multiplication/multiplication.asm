@@ -24,7 +24,3 @@ mcand   .fill   32766   Multiplicand (32766)
 mplier  .fill   10383   Multiplier (10383)
 
 stack   .fill   0       Stack for status checking
-        .fill   0       Additional stack space
-        .fill   0       Additional stack space
-        .fill   0       Additional stack space
-        .fill   0       Additional stack space
