@@ -95,11 +95,13 @@ public class Simulator {
 
     // ฟังก์ชันจำลองการทำงานของเครื่อง
     private static void simulateMachine(State state) {
-        int totalInstructions = 0;
+        int totalInstructions = 1;
 
         while (true) {
             printState(state);
-            int opcode = state.mem[state.pc] >> 22;
+            //32 bit ; shift right 22 bit
+            int opcode = state.mem[state.pc] >> 22; //ฐาน 10
+            System.out.println(opcode);
 
             switch (opcode) {
                 case 0: // ADD
@@ -123,6 +125,9 @@ public class Simulator {
                 case 6: // HALT
                     System.out.println("Machine halted.");
                     System.out.println("Total of " + totalInstructions + " instructions executed.");
+                    System.out.println("Final state of the machine:");
+                    state.pc++;
+                    printState(state);
                     return;
                 case 7: // NOOP
                     break;
@@ -140,8 +145,7 @@ public class Simulator {
             }
         }
 
-        System.out.println("Final state of the machine:");
-        printState(state);
+        
     }
 
     // ฟังก์ชันสำหรับคำสั่ง R-Format (ADD, NAND)
@@ -153,7 +157,13 @@ public class Simulator {
     // ฟังก์ชันสำหรับคำสั่ง Load/Store (LW, SW)
     private static void executeLoadStore(State state, boolean isLoad) {
         int[] args = decodeIFormat(state.mem[state.pc]);
-        int offset = args[2] + state.reg[args[0]];
+        for(int i = 0; i < args.length; i++){
+            System.out.print(args[i] + " ");
+        }
+        System.out.println();
+        int offset = args[2] + state.reg[args[0]]; //offsetField บวกกับค่าใน regA
+        System.out.println(offset);
+
 
         if (isLoad) {
             state.reg[args[1]] = state.mem[offset];
@@ -172,9 +182,16 @@ public class Simulator {
 
     // ฟังก์ชันสำหรับคำสั่ง JALR
     private static void executeJALR(State state) {
-        int[] args = decodeRFormat(state.mem[state.pc]);
+        int[] args = decodeJFormat(state.mem[state.pc]);
         state.reg[args[1]] = state.pc + 1;
         state.pc = state.reg[args[0]] - 1;
+    }
+
+    private static int[] decodeJFormat(int instruction){
+        return new int[]{
+            (instruction >> 19) & 7, // regA (Bits 21-19)
+            (instruction >> 16) & 7  // regB (rd, Bits 18-16)
+        };
     }
 
     // ฟังก์ชันถอดรหัส R-Format
