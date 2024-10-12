@@ -49,11 +49,23 @@ public class AssemblerProcessor {
             
             // เปลี่ยน System.out กลับไปที่ Terminal (originalOut)
             System.setOut(originalOut);
-            System.out.println("Assembler completed successfully.");
+            // System.out.println("Assembler completed successfully.");
+            System.out.println();
+            System.out.println();
+            System.out.println();
+            System.out.println("Program exiting with status: 0");
+            System.exit(0);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Assembler failed due to errors.");
+            // e.printStackTrace();
+            // System.out.println("Assembler failed due to errors.");
+            // System.setOut(System.out);
+            System.err.println();
+            System.err.println();
+            System.err.println();
+            System.err.println("Error: " + e.getMessage());
+            System.err.println("Program exiting with status: 1");
+            System.exit(1);
         }
     }
 }
