@@ -1,4 +1,7 @@
 {
   "liveServer.settings.ChromeDebuggingAttachment": false,
-  "liveshare.languages.allowGuestCommandControl" : true
+  "liveshare.languages.allowGuestCommandControl": true,
+  "terminal.integrated.accessibleViewPreserveCursorPosition": true,
+  "terminal.integrated.accessibleViewFocusOnCommandExecution": true,
+  "terminal.integrated.scrollback": 100000
 }

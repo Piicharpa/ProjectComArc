@@ -1,0 +1,23 @@
+        lw 0 1 n ;load input arg to reg 1
+        lw 0 6 neg1 ;load -1 to reg 6
+        add 1 6 1 ;minus n by 1(because we already did 1 and 2)
+        lw 0 5 stackA
+        lw 0 2 zero ;load 0 to reg 2(first fibonacci)
+        lw 0 3 one ;load 1 to reg 3(second fibonacci)
+fibo    beq 1 0 done ;check if n = 0?
+        lw 0 6 neg1 ;load -1 to reg 6
+        add 1 6 1 ;minus n by 1
+        add 2 3 4 ;store n-2 + n-1 in reg 4
+        add 3 0 2 ;move reg 3 to reg 2
+        add 4 0 3 ;move reg 4 to reg 3
+        lw 0 6 fiboAd ;load fibo address
+        jalr 6 0 ;loop
+done    halt ;stop program
+n       .fill 5
+zero    .fill 0
+one     .fill 1
+neg1    .fill -1
+fiboAd  .fill fibo
+stack   .fill   0
+stackA  .fill stack
+

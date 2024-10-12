@@ -41,9 +41,9 @@ public class Simulator {
     public static void simulateMachine(MachineState state) {
         int instructionCount = 0;
 
-        while (true) {
+        while (instructionCount < 5000) {
             printState(state);
-            pauseExecution();
+            // pauseExecution();
 
             int instruction = fetch(state);
             instructionCount++;  // Count the current instruction
@@ -59,8 +59,8 @@ public class Simulator {
             int regB = (instruction >> 16) & 0x7;    // RegB is in bits 16-18
             int destReg = instruction & 0x7;         // Dest register in bits 0-2
             int offset = signExtend(instruction & 0xFFFF); // 16-bit offset/sign-extended
-
-            if (offset > state.numMemory - 1) state.numMemory++;
+            
+            
 
             switch (opcode) {
                 case 0: // ADD
@@ -92,6 +92,7 @@ public class Simulator {
 
                 case 3: // SW (Store Word)
                     int memAddressSW = state.reg[regA] + offset;
+                    if(memAddressSW > state.highestNumMemory-1) state.highestNumMemory++;
                     if (memAddressSW >= 0 && memAddressSW < state.mem.length) {
                         state.mem[memAddressSW] = state.reg[regB];
                         if (regB == 3) {
@@ -105,7 +106,14 @@ public class Simulator {
 
                 case 4: // BEQ (Branch if Equal)
                     if (state.reg[regA] == state.reg[regB]) {
-                        state.pc += offset;
+                      
+                      
+                        int absOffset = Math.abs(offset);
+                        if(state.mem[absOffset] > 1000 ) state.pc = state.pc + 1 + offset;
+                        else state.pc = state.mem[offset];
+
+                        
+                    
                     } else {
                         state.pc += 1;  // Only increment PC if branch is not taken
                     }
@@ -123,7 +131,7 @@ public class Simulator {
                     System.out.println("Machine halted.");
                     System.out.println("Total of " + instructionCount + " instructions executed.");
                     System.out.println("Final state of the machine:");
-                    printState(state); // Printing state before exit
+                    printFinalState(state); // Printing state before exit
                     return;  // Exit simulation
 
                 case 7: // NOOP (No Operation)
@@ -138,20 +146,27 @@ public class Simulator {
         }
     }
 
-    public static void pauseExecution() {
-        System.out.println("Press Enter to continue...");
-        try {
-            System.in.read(); 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    
 
     public static void printState(MachineState state) {
         System.out.println("\n@@@\nState:");
         System.out.println("\tPC: " + state.pc);
         System.out.println("\tMemory:");
         for (int i = 0; i < state.highestNumMemory; i++) {
+            System.out.println("\t\tmem[" + i + "] = " + state.mem[i]);
+        }
+        System.out.println("\tRegisters:");
+        for (int i = 0; i < state.reg.length; i++) {
+            System.out.println("\t\treg[" + i + "] = " + state.reg[i]);
+        }
+        System.out.println("End state\n");
+    }
+
+    public static void printFinalState(MachineState state) {
+        System.out.println("\n@@@\nState:");
+        System.out.println("\tPC: " + state.pc);
+        System.out.println("\tMemory:");
+        for (int i = 0; i < state.numMemory; i++) {
             System.out.println("\t\tmem[" + i + "] = " + state.mem[i]);
         }
         System.out.println("\tRegisters:");
