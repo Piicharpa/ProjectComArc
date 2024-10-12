@@ -28,6 +28,12 @@ public class Simulator {
                     return false;
                 }
             }
+
+            if (address == 0) {
+                System.out.println("Error: File is empty or contains no valid instructions.");
+                return false;
+            }
+
             state.numMemory = address;
             state.highestNumMemory = address;
         } catch (IOException e) {
@@ -40,8 +46,9 @@ public class Simulator {
 
     public static void simulateMachine(MachineState state) {
         int instructionCount = 0;
+        int instructionLimit = 5000;
 
-        while (instructionCount < 5000) {
+        while (instructionCount < instructionLimit) {
             printState(state);
             // pauseExecution();
 
@@ -64,13 +71,18 @@ public class Simulator {
 
             switch (opcode) {
                 case 0: // ADD
-                    state.reg[destReg] = state.reg[regA] + state.reg[regB];
-                    if (destReg == 3) {
-                        System.out.println("Updated $r3 in ADD: " + state.reg[destReg]);
+                    if (!isValidRegister(regA) || !isValidRegister(regB) || !isValidRegister(destReg)) return;
+                    long result = (long) state.reg[regA] + (long) state.reg[regB];
+                    if (result > Integer.MAX_VALUE || result < Integer.MIN_VALUE) {
+                        System.out.println("Error: Overflow in ADD operation.");
+                        return;
                     }
+                    state.reg[destReg] = (int) result;
                     break;
 
                 case 1: // NAND
+                    if (!isValidRegister(regA) || !isValidRegister(regB) || !isValidRegister(destReg)) return;
+
                     state.reg[destReg] = ~(state.reg[regA] & state.reg[regB]);
                     if (destReg == 3) {
                         System.out.println("Updated $r3 in NAND: " + state.reg[destReg]);
@@ -105,21 +117,17 @@ public class Simulator {
                     break;
 
                 case 4: // BEQ (Branch if Equal)
-                    if (state.reg[regA] == state.reg[regB]) {
-                      
-                      
+                    if (state.reg[regA] == state.reg[regB]) {  
                         int absOffset = Math.abs(offset);
                         if(state.mem[absOffset] > 1000 ) state.pc = state.pc + 1 + offset;
-                        else state.pc = state.mem[offset];
-
-                        
-                    
+                        else state.pc = state.mem[offset]; 
                     } else {
                         state.pc += 1;  // Only increment PC if branch is not taken
                     }
                     continue; // Skip the PC update for BEQ
 
                 case 5: // JALR (Jump and Link Register)
+
                     if (regA != regB) {
                         state.reg[regB] = state.pc + 1;
                     }
@@ -160,6 +168,7 @@ public class Simulator {
             System.out.println("\t\treg[" + i + "] = " + state.reg[i]);
         }
         System.out.println("End state\n");
+        
     }
 
     public static void printFinalState(MachineState state) {
@@ -177,6 +186,13 @@ public class Simulator {
     }
 
     public static int fetch(MachineState state) {
+
+        if (state.pc < 0 || state.pc >= state.numMemory) {
+            System.out.println("Error: PC out of memory bounds at PC " + state.pc);
+            halt();
+            return 0; // Return HALT instruction or handle appropriately
+        }
+
         return state.mem[state.pc]; 
     }
 
@@ -186,11 +202,35 @@ public class Simulator {
 
     public static void updatePC(MachineState state) {
         state.pc += 1; 
+        if (state.pc >= state.numMemory) {
+            System.out.println("Error: Program Counter out of memory bounds at PC " + state.pc);
+            halt(); // Stop execution if PC goes beyond loaded instructions
+        }
     }
 
     public static int signExtend(int value) {
         return (value & (1 << 15)) != 0 ? value | 0xFFFF0000 : value; // Sign extend correct
     }
+
+    public static boolean checkInstructionLimit(int instructionCount, int limit) {
+        if (instructionCount >= limit) {
+            System.out.println("Error: Exceeded instruction count limit of " + limit + ". Possible infinite loop.");
+            halt();
+            return true;
+        } else if (instructionCount >= limit * 0.9) { // Warning at 90% of limit
+            System.out.println("Warning: Instruction count is approaching the limit of " + limit);
+        }
+        return false;
+    }
+
+    public static boolean isValidRegister(int reg) {
+        if (reg < 0 || reg >= 8) {
+            System.out.println("Error: Invalid register index " + reg);
+            return false;
+        }
+        return true;
+    }    
+    
 
     static class MachineState {
         int pc; 
