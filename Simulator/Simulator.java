@@ -1,46 +1,25 @@
-import javax.swing.*;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
 public class Simulator {
 
     public static void main(String[] args) {
-        // Select a file from the folder
-        String fileName = selectFile("Assembler/File/");
-        if (fileName == null) return;
+        String fileName = "Assembler/File/output.txt"; // Path ของไฟล์ machine code
 
-        // Load file and initialize machine state
         MachineState state = new MachineState();
         if (!loadMemoryFromFile(state, fileName)) return;
 
-        // Start machine simulation
         simulateMachine(state);
     }
 
-    // File selection from a folder
-    public static String selectFile(String folderPath) {
-        JFileChooser fileChooser = new JFileChooser(folderPath);
-        int returnValue = fileChooser.showOpenDialog(null);
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            return selectedFile.getAbsolutePath();
-        } else {
-            System.out.println("No file selected.");
-            return null;
-        }
-    }
-
-    // Load machine code into memory from file
     public static boolean loadMemoryFromFile(MachineState state, String fileName) {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
             int address = 0;
 
-            // Read lines from the file and load into memory
             while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) continue; // Skip empty lines
+                if (line.trim().isEmpty()) continue;
                 try {
                     int instruction = Integer.parseInt(line.trim());
                     state.mem[address++] = instruction;
@@ -49,76 +28,103 @@ public class Simulator {
                     return false;
                 }
             }
-            state.numMemory = address; // Update the count of memory instructions
-            state.highestNumMemory = address; // Set highest memory address used
+            state.numMemory = address;
+            state.highestNumMemory = address;
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
             return false;
         }
 
-        return true; // Return true if successfully loaded
+        return true;
     }
 
-    //hi
-    // Simulate the machine execution
     public static void simulateMachine(MachineState state) {
         int instructionCount = 0;
 
-        // Main simulation loop
         while (true) {
-            if (instructionCount == 5000) break; // Limit to 5000 instructions
+            printState(state);
+            pauseExecution();
 
-            printState(state); // Print state before executing instruction
+            int instruction = fetch(state);
+            instructionCount++;  // Count the current instruction
 
-            int instruction = fetch(state); // Fetch instruction
-
-            if (instruction == 0) { // Assuming '0' represents the halt instruction
+            if (instruction == 0) { // Assuming '0' represents HALT instruction
                 halt();
-                System.out.println("Total of " + (instructionCount + 1) + " instructions executed.");
+                System.out.println("Total of " + instructionCount + " instructions executed.");
                 break;
             }
 
-            int opcode = (instruction >> 22) & 0x7; // 22-24
-            int regA = (instruction >> 19) & 0x7;   // 19-21
-            int regB = (instruction >> 16) & 0x7;   // 16-18
-            int destReg = instruction & 0x7;        // Last 3 bits for destination register
-            int offset = instruction & 0xFFFF;      // Last 16 bits for offset
+            int opcode = (instruction >> 22) & 0x7;  // Opcode is in bits 22-24
+            int regA = (instruction >> 19) & 0x7;    // RegA is in bits 19-21
+            int regB = (instruction >> 16) & 0x7;    // RegB is in bits 16-18
+            int destReg = instruction & 0x7;         // Dest register in bits 0-2
+            int offset = signExtend(instruction & 0xFFFF); // 16-bit offset/sign-extended
+
+            if (offset > state.numMemory - 1) state.numMemory++;
 
             switch (opcode) {
                 case 0: // ADD
                     state.reg[destReg] = state.reg[regA] + state.reg[regB];
+                    if (destReg == 3) {
+                        System.out.println("Updated $r3 in ADD: " + state.reg[destReg]);
+                    }
                     break;
 
                 case 1: // NAND
                     state.reg[destReg] = ~(state.reg[regA] & state.reg[regB]);
+                    if (destReg == 3) {
+                        System.out.println("Updated $r3 in NAND: " + state.reg[destReg]);
+                    }
                     break;
 
                 case 2: // LW (Load Word)
-                    state.reg[regB] = state.mem[state.reg[regA] + signExtend(offset)];
+                    int memAddressLW = state.reg[regA] + offset;
+                    if (memAddressLW >= 0 && memAddressLW < state.mem.length) {
+                        state.reg[regB] = state.mem[memAddressLW];
+                        if (regB == 3) {
+                            System.out.println("Loading value into $r3: " + state.reg[regB]);
+                        }
+                    } else {
+                        System.out.println("Error: Memory access out of bounds at address " + memAddressLW);
+                        return;
+                    }
                     break;
 
                 case 3: // SW (Store Word)
-                    state.mem[state.reg[regA] + signExtend(offset)] = state.reg[regB];
+                    int memAddressSW = state.reg[regA] + offset;
+                    if (memAddressSW >= 0 && memAddressSW < state.mem.length) {
+                        state.mem[memAddressSW] = state.reg[regB];
+                        if (regB == 3) {
+                            System.out.println("Storing value from $r3: " + state.reg[regB]);
+                        }
+                    } else {
+                        System.out.println("Error: Memory access out of bounds at address " + memAddressSW);
+                        return;
+                    }
                     break;
 
                 case 4: // BEQ (Branch if Equal)
                     if (state.reg[regA] == state.reg[regB]) {
-                        state.pc += signExtend(offset);
+                        state.pc += offset;
+                    } else {
+                        state.pc += 1;  // Only increment PC if branch is not taken
                     }
-                    break;
+                    continue; // Skip the PC update for BEQ
 
                 case 5: // JALR (Jump and Link Register)
-                    state.reg[regB] = state.pc + 1;
+                    if (regA != regB) {
+                        state.reg[regB] = state.pc + 1;
+                    }
                     state.pc = state.reg[regA];
-                    break;
+                    continue;  // Skip PC update for JALR
 
                 case 6: // HALT
                     halt();
                     System.out.println("Machine halted.");
                     System.out.println("Total of " + instructionCount + " instructions executed.");
                     System.out.println("Final state of the machine:");
-                    state.pc++;
-                    printState(state);
+                    printState(state); // Printing state before exit
+                    return;  // Exit simulation
 
                 case 7: // NOOP (No Operation)
                     break;
@@ -128,16 +134,19 @@ public class Simulator {
                     return;
             }
 
-            instructionCount++;
-            updatePC(state); // Update PC after executing instruction
+            updatePC(state);
         }
-
-        printState(state); // Print state before exiting
     }
 
-   
+    public static void pauseExecution() {
+        System.out.println("Press Enter to continue...");
+        try {
+            System.in.read(); 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-    // Print the current state of the machine
     public static void printState(MachineState state) {
         System.out.println("\n@@@\nState:");
         System.out.println("\tPC: " + state.pc);
@@ -152,33 +161,27 @@ public class Simulator {
         System.out.println("End state\n");
     }
 
-    // Fetch the instruction at the current PC
     public static int fetch(MachineState state) {
-        return state.mem[state.pc]; // Return the instruction at PC
+        return state.mem[state.pc]; 
     }
 
-    // Halt the simulator
     public static void halt() {
         System.out.println("Halt instruction encountered. Stopping simulation.");
     }
 
-    // Increment the PC to point to the next instruction
     public static void updatePC(MachineState state) {
-        state.pc += 1; // Increment PC
+        state.pc += 1; 
     }
 
-    // Sign extend the offset from 16 bits to 32 bits
     public static int signExtend(int value) {
-        return (value & (1 << 15)) != 0 ? value - (1 << 16) : value; // Sign extension
+        return (value & (1 << 15)) != 0 ? value | 0xFFFF0000 : value; // Sign extend correct
     }
-//
-    // Class representing the state of the machine
+
     static class MachineState {
-        int pc; // Program counter
-        int[] reg = new int[8]; // Assuming 8 registers
-        int[] mem = new int[65536]; // Assuming 64K memory size
-        int numMemory; // Number of instructions loaded into memory
-        int highestNumMemory; // Highest memory address used
+        int pc; 
+        int[] reg = new int[8]; 
+        int[] mem = new int[65536]; 
+        int numMemory; 
+        int highestNumMemory; 
     }
 }
-
