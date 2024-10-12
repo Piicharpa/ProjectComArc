@@ -8,7 +8,7 @@ import java.util.Map;
 public class Evaluator {
     private Map<String, Integer> symbolTable; // A symbol table to store labels and their value
     private Map<String, Integer> labelTable; // A label and address
-    private Map<String, Integer> addressTable; // A symbol andd address
+    private Map<String, Integer> addressTable; // A symbol and address
 
     public Evaluator() {
         this.symbolTable = new HashMap<>();
@@ -22,7 +22,7 @@ public class Evaluator {
             // Store labels and their addresses
             if (line.getLabel() != null) {
                 if (line.getLabel().length() > 6) throw new EvalException.SixCharacters(line.getLabel()); 
-                else if (!Character.isLetter(line.getLabel().charAt(0))) throw new EvalException.InvalidLabelFormat(line.getLabel()); 
+                else if (!Character.isLetter(line.getLabel().charAt(0))) throw new EvalException.FirstCharacter(line.getLabel()); 
                 else if (labelTable.containsKey(line.getLabel())) throw new EvalException.SameLabel(line.getLabel());
                 else {
                     labelTable.put(line.getLabel(), line.getAddress());
@@ -37,8 +37,6 @@ public class Evaluator {
                 // System.out.println(line.toString());
                 if (!line.getArguments().isEmpty()) {
                     String value = line.getArguments().get(0);
-                    // System.out.println("val " + value);
-
                     if (labelTable.containsKey(value)) {
                         // Handle symbolic address (e.g., start)
                         symbolTable.put(line.getSymbolic(), labelTable.get(value));
@@ -153,10 +151,10 @@ public class Evaluator {
         } else if (isNumber(args.get(2))) {
             offset = Integer.parseInt(args.get(2)); // If not, treat as numeric
         } else {
-            throw new EvalException.Undefined(args.get(2));
+            throw new EvalException.offsetNotFound(args.get(2));
         }
 
-        if (!(offset >=  -32768 && offset <=  32768))  throw new EvalException.Offset(offset);
+        if (offset < -32768 || offset > 32767) throw new EvalException.Offset(offset);
 
 
         String binaryCode = generateITypeCode(opcode, regA, regB, offset);
@@ -192,10 +190,10 @@ public class Evaluator {
 
     // Generate binary code for I-type instruction (lw, sw, beq)
     public String generateITypeCode(String opcode, int regA, int regB, int offset) {
-        // Ensure that the offset is within the 16-bit two's complement range
-        if (offset < -32768 || offset > 32767) {
-            throw new IllegalArgumentException("Offset out of 16-bit range: " + offset);
-        }
+        // // Ensure that the offset is within the 16-bit two's complement range
+        // if (offset < -32768 || offset > 32767) {
+        //     throw new IllegalArgumentException("Offset out of 16-bit range: " + offset);
+        // }
 
         // I-type: Opcode (3 bits), regA (3 bits), regB (3 bits), offset (16 bits)
         String regABinary = String.format("%3s", Integer.toBinaryString(regA)).replace(' ', '0');
