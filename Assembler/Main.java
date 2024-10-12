@@ -4,8 +4,7 @@ public class Main {
 
     public static void main(String[] args) {
         AssemblerProcessor processor = new AssemblerProcessor();
-
-        // Input file path
+        // System.out.println("Hello World");
 
         String inputFilePath = "Combination/combination.asm";
         // String inputFilePath = "Assembler/File/Aj.txt";

@@ -11,9 +11,9 @@ public class EvalException extends RuntimeException {
         }
     }
 
-    public static class UndefineLabel extends EvalException {
-        public UndefineLabel(String s) {
-            super("Undefined label -> " + s);
+    public static class offsetNotFound extends EvalException {
+        public offsetNotFound(String s) {
+            super("Offset value for symbolic address '" + s + "' not found");
         }
     }
 
@@ -44,12 +44,6 @@ public class EvalException extends RuntimeException {
     public static class Offset extends EvalException {
         public Offset(int s) {
             super("Offset out of range -> " + s);
-        }
-    }
-
-    public static class InvalidLabelFormat extends EvalException {
-        public InvalidLabelFormat(String s) {
-            super("Invalid label format -> " + s);
         }
     }
 }

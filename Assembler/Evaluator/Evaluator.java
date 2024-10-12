@@ -6,54 +6,62 @@ import java.util.List;
 import java.util.Map;
 
 public class Evaluator {
-    private Map<String, Integer> symbolTable; // A symbol table to store labels and their value
-    private Map<String, Integer> labelTable; // A label and address
-    private Map<String, Integer> addressTable; // A symbol andd address
+    // A symbol table to store labels and their values
+    private Map<String, Integer> symbolValueMap; 
+    // A table to store labels and their corresponding addresses
+    private Map<String, Integer> labelAddrMap; 
+    // A table to store symbols and their corresponding addresses
+    private Map<String, Integer> symbolAddrMap;  
 
+    /**
+     * Constructor for the Evaluator class.
+     * Initializes the maps used for storing symbol values, label addresses, and symbol addresses.
+     */
     public Evaluator() {
-        this.symbolTable = new HashMap<>();
-        this.labelTable = new HashMap<>();
-        this.addressTable = new HashMap<>();
+        this.symbolValueMap = new HashMap<>();
+        this.labelAddrMap = new HashMap<>();
+        this.symbolAddrMap = new HashMap<>();
     }
 
-    // First pass: Build the symbol table with labels and .fill values
+    /**
+     * Evaluates a list of parsed lines from assembly code.
+     * This method builds the symbolValueMap with labels and .fill values, 
+     * then generates machine code for each instruction.
+     * 
+     * @param parsedLines A list of parsed lines representing assembly code.
+     */
     public void evaluate(List<ParsedLine> parsedLines) {
         for (ParsedLine line : parsedLines) {
             // Store labels and their addresses
             if (line.getLabel() != null) {
                 if (line.getLabel().length() > 6) throw new EvalException.SixCharacters(line.getLabel()); 
-                else if (!Character.isLetter(line.getLabel().charAt(0))) throw new EvalException.InvalidLabelFormat(line.getLabel()); 
-                else if (labelTable.containsKey(line.getLabel())) throw new EvalException.SameLabel(line.getLabel());
+                else if (!Character.isLetter(line.getLabel().charAt(0))) throw new EvalException.FirstCharacter(line.getLabel()); 
+                else if (labelAddrMap.containsKey(line.getLabel())) throw new EvalException.SameLabel(line.getLabel());
                 else {
-                    labelTable.put(line.getLabel(), line.getAddress());
-                    // System.out.println("label: " + line.getLabel() + " address: " + labelTable.get(line.getLabel()));
+                    labelAddrMap.put(line.getLabel(), line.getAddress());
                 }
             }
         }
 
+        // Process '.fill' instructions to resolve symbolic values
         for (ParsedLine line : parsedLines) {
-             // Handle .fill (sysmbolic) 
+             // Handle .fill (symbolic) 
             if (line.getInstruction() != null && line.getInstruction().equals(".fill")) {
-                // System.out.println(line.toString());
                 if (!line.getArguments().isEmpty()) {
                     String value = line.getArguments().get(0);
-                    // System.out.println("val " + value);
-
-                    if (labelTable.containsKey(value)) {
-                        // Handle symbolic address (e.g., start)
-                        symbolTable.put(line.getSymbolic(), labelTable.get(value));
-                    } else if (symbolTable.containsKey(value)) { 
-                        // Handle symbolic .fill symbolic
-                        symbolTable.put(line.getSymbolic(), symbolTable.get(value));
+                    if (labelAddrMap.containsKey(value)) {
+                        // If the value refers to a label
+                        symbolValueMap.put(line.getSymbolic(), labelAddrMap.get(value));
+                    } else if (symbolValueMap.containsKey(value)) { 
+                        // If the value refers to another symbolic value
+                        symbolValueMap.put(line.getSymbolic(), symbolValueMap.get(value));
                     } else if (isNumber(value)) {
-                        // Handle numeric value
-                        symbolTable.put(line.getSymbolic(), Integer.parseInt(value));
+                        // If the value is a number
+                        symbolValueMap.put(line.getSymbolic(), Integer.parseInt(value));
                     } else {
                         throw new EvalException.Undefined(value);
                     }
-
-                    addressTable.put(line.getSymbolic(), line.getAddress());
-                    // System.out.println("sym: " + line.getSymbolic() + " address: " + addressTable.get(line.getSymbolic()));
+                    symbolAddrMap.put(line.getSymbolic(), line.getAddress());
                 }
             }
         }
@@ -65,7 +73,11 @@ public class Evaluator {
     }
 
 
-    // Evaluate a single parsed line and generate machine code
+    /**
+     * Evaluates a single parsed line and generates machine code.
+     * 
+     * @param line The parsed line representing an assembly instruction.
+     */
     private void evaluateLine(ParsedLine line) {
         String instruction = line.getInstruction();
 
@@ -92,31 +104,41 @@ public class Evaluator {
             case "jalr":
                 evaluateJType(line, "101");
                 break;
-            case "halt": // Handle halt instruction
+            case "halt": 
                 String binaryCode = "1100000000000000000000000";
                 int decimalCode = Integer.parseInt(binaryCode, 2);
                 // System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
                 System.out.println(decimalCode);
                 break;
-            case "noop": // Handle noop (no operation)
+            case "noop": 
                 binaryCode = "1110000000000000000000000";
                 decimalCode = Integer.parseInt(binaryCode, 2);
                 // System.out.println("Machine code for " + line.getInstruction() + ": " + binaryCode + " > " + decimalCode);
                 System.out.println(decimalCode);
                 break;
             case ".fill":
-                System.out.println(symbolTable.get(line.getSymbolic()));
+                Integer value = symbolValueMap.get(line.getSymbolic());
+                if (value != null) {
+                    System.out.println(value);
+                } else {
+                    System.out.println(0); // Output 0 if the value is null
+                }
                 break;
             default:
                 throw new EvalException.UnknownInstruction(line.getInstruction());
         }
     }
 
-    // Evaluate R-Type instruction (add, nand)
+    /**
+     * Evaluates R-Type instructions (add, nand) and generates corresponding machine code.
+     * 
+     * @param line   The parsed line representing the R-Type instruction.
+     * @param opcode The opcode associated with the R-Type instruction.
+     */
     private void evaluateRType(ParsedLine line, String opcode) {
         List<String> args = line.getArguments();
         if (args.size() != 3) {
-            System.out.println("Error: add instruction requires 3 arguments");
+            System.err.println("Error: add instruction requires 3 arguments");
             return;
         }
         int regA = Integer.parseInt(args.get(0));
@@ -129,11 +151,16 @@ public class Evaluator {
         System.out.println(decimalCode);
     }
 
-    // Evaluate I-Type instruction (lw, sw, beq)
+    /**
+     * Evaluates I-Type instructions (lw, sw, beq) and generates corresponding machine code.
+     * 
+     * @param line   The parsed line representing the I-Type instruction.
+     * @param opcode The opcode associated with the I-Type instruction.
+     */
     private void evaluateIType(ParsedLine line, String opcode) {
         List<String> args = line.getArguments();
         if (args.size() != 3) {
-            System.out.println("Error: " + line.getInstruction() + " instruction requires 3 arguments");
+            System.err.println("Error: " + line.getInstruction() + " instruction requires 3 arguments");
             return;
         }
 
@@ -141,22 +168,22 @@ public class Evaluator {
         int regB = Integer.parseInt(args.get(1));
         int offset;
 
-        if (labelTable.containsKey(args.get(2))) { // If it is label
+        if (labelAddrMap.containsKey(args.get(2))) { // If it is label
             if (line.getInstruction().equals("beq")) { // For beq
-                int targetAddress = labelTable.get(args.get(2));
+                int targetAddress = labelAddrMap.get(args.get(2));
                 offset = targetAddress - (line.getAddress() + 1); // PC + 1 + offset
             } else {
-                offset = labelTable.get(args.get(2)); // For lw & sw
+                offset = labelAddrMap.get(args.get(2)); // For lw & sw
             }
-        } else if (symbolTable.containsKey(args.get(2))) { // If it is symbolic
-            offset = addressTable.get(args.get(2));
+        } else if (symbolValueMap.containsKey(args.get(2))) { // If it is symbolic
+            offset = symbolAddrMap.get(args.get(2));
         } else if (isNumber(args.get(2))) {
             offset = Integer.parseInt(args.get(2)); // If not, treat as numeric
         } else {
-            throw new EvalException.Undefined(args.get(2));
+            throw new EvalException.offsetNotFound(args.get(2));
         }
 
-        if (!(offset >=  -32768 && offset <=  32768))  throw new EvalException.Offset(offset);
+        if (offset < -32768 || offset > 32767) throw new EvalException.Offset(offset);
 
 
         String binaryCode = generateITypeCode(opcode, regA, regB, offset);
@@ -166,11 +193,16 @@ public class Evaluator {
     }
 
 
-    // Evaluate J-Type instruction (jalr)
+    /**
+     * Evaluates J-Type instructions (jalr) and generates corresponding machine code.
+     * 
+     * @param line   The parsed line representing the J-Type instruction.
+     * @param opcode The opcode associated with the J-Type instruction.
+     */
     private void evaluateJType(ParsedLine line, String opcode) {
         List<String> args = line.getArguments();
         if (args.size() != 2) {
-            System.out.println("Error: jalr instruction requires 2 arguments");
+            System.err.println("Error: jalr instruction requires 2 arguments");
             return;
         }
         int regA = Integer.parseInt(args.get(0));
@@ -182,6 +214,15 @@ public class Evaluator {
         System.out.println(decimalCode);
     }
 
+     /**
+     * Generates binary code for R-Type instructions.
+     * 
+     * @param opcode  The opcode for the R-Type instruction.
+     * @param regA    The first register operand.
+     * @param regB    The second register operand.
+     * @param destReg The destination register.
+     * @return The generated binary code as a String.
+     */
     public String generateRTypeCode(String opcode, int regA, int regB, int destReg) {
         // R-type: Opcode (3 bits), regA (3 bits), regB (3 bits), unused bits (12 bits), destReg (3 bits)
         String regABinary = String.format("%3s", Integer.toBinaryString(regA)).replace(' ', '0');
@@ -190,12 +231,20 @@ public class Evaluator {
         return String.format("%s%s%s%013d%s", opcode, regABinary, regBBinary, 0, destRegBinary);
     }
 
-    // Generate binary code for I-type instruction (lw, sw, beq)
+    /**
+     * Generates binary code for I-Type instructions (lw, sw, beq).
+     * 
+     * @param opcode  The opcode for the I-Type instruction.
+     * @param regA    The first register operand.
+     * @param regB    The second register operand.
+     * @param offset  The offset value for the instruction.
+     * @return The generated binary code as a String.
+     */
     public String generateITypeCode(String opcode, int regA, int regB, int offset) {
-        // Ensure that the offset is within the 16-bit two's complement range
-        if (offset < -32768 || offset > 32767) {
-            throw new IllegalArgumentException("Offset out of 16-bit range: " + offset);
-        }
+        // // Ensure that the offset is within the 16-bit two's complement range
+        // if (offset < -32768 || offset > 32767) {
+        //     throw new IllegalArgumentException("Offset out of 16-bit range: " + offset);
+        // }
 
         // I-type: Opcode (3 bits), regA (3 bits), regB (3 bits), offset (16 bits)
         String regABinary = String.format("%3s", Integer.toBinaryString(regA)).replace(' ', '0');
@@ -204,7 +253,14 @@ public class Evaluator {
         return String.format("%s%s%s%s", opcode, regABinary, regBBinary, offsetBinary);
     }
 
-    // Generate binary code for J-type instruction (jalr)
+    /**
+     * Generates binary code for J-Type instructions (jalr).
+     * 
+     * @param opcode  The opcode for the J-Type instruction.
+     * @param regA    The first register operand.
+     * @param regB    The second register operand.
+     * @return The generated binary code as a String.
+     */
     public String generateJTypeCode(String opcode, int regA, int regB) {
         // J-type: Opcode (3 bits), regA (3 bits), regB (3 bits), unused bits (16 bits)
         String regABinary = String.format("%3s", Integer.toBinaryString(regA)).replace(' ', '0');
@@ -212,12 +268,12 @@ public class Evaluator {
         return String.format("%s%s%s%016d", opcode, regABinary, regBBinary, 0);
     }
 
-    // Generate binary code for O-type instruction (halt, noop)
-    public String generateOTypeCode(String opcode) {
-        // O-type: Opcode (3 bits), unused bits (22 bits)
-        return String.format("%s%022d", opcode, 0);
-    }
-
+    /**
+     * Checks if a given string is a valid number.
+     * 
+     * @param str The string to check.
+     * @return True if the string is a valid number, otherwise false.
+     */
     public static boolean isNumber(String str) {
         if (str == null || str.isEmpty()) {
             return false;
