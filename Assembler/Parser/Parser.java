@@ -59,7 +59,10 @@ public class Parser {
 
         // Add arguments to the instruction (if any)
         while (tokenizer.hasMoreTokens()) {
-            parsedLine.addArgument(tokenizer.getNextToken());
+            if(parsedLine.getInstruction().equals(".fill")) {
+                int argument = Integer.parseInt(tokenizer.getNextToken());
+                if (argument < -32768 || argument > 32767) throw new EvalException.Offset(argument);
+            } else parsedLine.addArgument(tokenizer.getNextToken());
         }
 
         return parsedLine;
