@@ -241,7 +241,6 @@ public class Evaluator {
      * @return The generated binary code as a String.
      */
     public String generateITypeCode(String opcode, int regA, int regB, int offset) {
-        // // Ensure that the offset is within the 16-bit two's complement range
         // if (offset < -32768 || offset > 32767) {
         //     throw new IllegalArgumentException("Offset out of 16-bit range: " + offset);
         // }
